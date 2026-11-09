@@ -1,0 +1,1 @@
+Iga proovitöö on eraldi alamkaustas nimega NN-nimi. Igal tööl on oma README.md. Ära muuda teiste tööde kaustu.
