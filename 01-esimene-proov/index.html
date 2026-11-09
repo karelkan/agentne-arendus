@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trips-traps-trull</title>
+  <style>
+    :root {
+      --bg: #f4f5f7;
+      --card: #ffffff;
+      --text: #1f2933;
+      --muted: #616e7c;
+      --line: #d2d6dc;
+      --x: #2563eb;
+      --o: #dc2626;
+      --win: #fde68a;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #111827;
+        --card: #1f2937;
+        --text: #f3f4f6;
+        --muted: #9ca3af;
+        --line: #374151;
+        --x: #60a5fa;
+        --o: #f87171;
+        --win: #78350f;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      padding: 16px;
+    }
+    main {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 24px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+      text-align: center;
+    }
+    h1 { margin: 0 0 16px; font-size: 1.6rem; }
+    .controls {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    select, button {
+      font: inherit;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--text);
+      cursor: pointer;
+    }
+    button:hover, select:hover { border-color: var(--muted); }
+    #status {
+      min-height: 1.5em;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      aspect-ratio: 1;
+      margin-bottom: 16px;
+    }
+    .cell {
+      font-size: clamp(2.5rem, 12vw, 4rem);
+      font-weight: 700;
+      border: 2px solid var(--line);
+      border-radius: 12px;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      transition: background 0.15s;
+    }
+    .cell:disabled { cursor: default; }
+    .cell.x { color: var(--x); }
+    .cell.o { color: var(--o); }
+    .cell.win { background: var(--win); }
+    .score {
+      display: flex;
+      justify-content: space-around;
+      color: var(--muted);
+    }
+    .score strong { display: block; font-size: 1.4rem; color: var(--text); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Trips-traps-trull</h1>
+
+    <div class="controls">
+      <label for="difficulty">Raskusaste:</label>
+      <select id="difficulty">
+        <option value="easy">Lihtne</option>
+        <option value="medium" selected>Keskmine</option>
+        <option value="hard">Võitmatu</option>
+      </select>
+      <button id="newGame">Uus mäng</button>
+    </div>
+
+    <div id="status">Sinu kord (X)</div>
+
+    <div class="board" id="board"></div>
+
+    <div class="score">
+      <div>Sina<strong id="scoreX">0</strong></div>
+      <div>Viik<strong id="scoreDraw">0</strong></div>
+      <div>Arvuti<strong id="scoreO">0</strong></div>
+    </div>
+  </main>
+
+  <script>
+    const HUMAN = 'X';
+    const COMPUTER = 'O';
+    const LINES = [
+      [0, 1, 2], [3, 4, 5], [6, 7, 8], // read
+      [0, 3, 6], [1, 4, 7], [2, 5, 8], // veerud
+      [0, 4, 8], [2, 4, 6]             // diagonaalid
+    ];
+
+    const boardEl = document.getElementById('board');
+    const statusEl = document.getElementById('status');
+    const difficultyEl = document.getElementById('difficulty');
+    const score = { X: 0, O: 0, draw: 0 };
+
+    let board;
+    let gameOver;
+    let computerThinking;
+    const cells = [];
+
+    // Loo 9 ruutu
+    for (let i = 0; i < 9; i++) {
+      const cell = document.createElement('button');
+      cell.className = 'cell';
+      cell.setAttribute('aria-label', `Ruut ${i + 1}`);
+      cell.addEventListener('click', () => onCellClick(i));
+      boardEl.appendChild(cell);
+      cells.push(cell);
+    }
+
+    // Tagastab { winner, line } või null
+    function findWinner(b) {
+      for (const line of LINES) {
+        const [a, c, d] = line;
+        if (b[a] && b[a] === b[c] && b[a] === b[d]) {
+          return { winner: b[a], line };
+        }
+      }
+      return null;
+    }
+
+    function emptyCells(b) {
+      return b.map((v, i) => (v === null ? i : -1)).filter(i => i !== -1);
+    }
+
+    function isFull(b) {
+      return b.every(v => v !== null);
+    }
+
+    function render() {
+      board.forEach((v, i) => {
+        cells[i].textContent = v ?? '';
+        cells[i].classList.toggle('x', v === 'X');
+        cells[i].classList.toggle('o', v === 'O');
+        cells[i].disabled = gameOver || computerThinking || v !== null;
+      });
+    }
+
+    function newGame() {
+      board = Array(9).fill(null);
+      gameOver = false;
+      computerThinking = false;
+      cells.forEach(c => c.classList.remove('win'));
+      statusEl.textContent = 'Sinu kord (X)';
+      render();
+    }
+
+    // Kontrollib mängu lõppu; tagastab true, kui mäng sai läbi
+    function checkEnd() {
+      const result = findWinner(board);
+      if (result) {
+        gameOver = true;
+        result.line.forEach(i => cells[i].classList.add('win'));
+        if (result.winner === HUMAN) {
+          statusEl.textContent = 'Sina võitsid! 🎉';
+          score.X++;
+        } else {
+          statusEl.textContent = 'Arvuti võitis!';
+          score.O++;
+        }
+      } else if (isFull(board)) {
+        gameOver = true;
+        statusEl.textContent = 'Viik!';
+        score.draw++;
+      }
+      if (gameOver) updateScore();
+      return gameOver;
+    }
+
+    function updateScore() {
+      document.getElementById('scoreX').textContent = score.X;
+      document.getElementById('scoreO').textContent = score.O;
+      document.getElementById('scoreDraw').textContent = score.draw;
+    }
+
+    function onCellClick(i) {
+      if (gameOver || computerThinking || board[i] !== null) return;
+      board[i] = HUMAN;
+      if (checkEnd()) { render(); return; }
+
+      computerThinking = true;
+      statusEl.textContent = 'Arvuti mõtleb…';
+      render();
+
+      setTimeout(() => {
+        board[chooseComputerMove()] = COMPUTER;
+        computerThinking = false;
+        if (!checkEnd()) statusEl.textContent = 'Sinu kord (X)';
+        render();
+      }, 400);
+    }
+
+    // ---------- Arvuti loogika ----------
+
+    function chooseComputerMove() {
+      switch (difficultyEl.value) {
+        case 'easy': return randomMove(board);
+        case 'medium': return mediumMove(board);
+        default: return bestMove(board);
+      }
+    }
+
+    function randomMove(b) {
+      const free = emptyCells(b);
+      return free[Math.floor(Math.random() * free.length)];
+    }
+
+    // Leiab käigu, millega `player` kohe võidaks; muidu -1
+    function winningMove(b, player) {
+      for (const i of emptyCells(b)) {
+        b[i] = player;
+        const wins = findWinner(b)?.winner === player;
+        b[i] = null;
+        if (wins) return i;
+      }
+      return -1;
+    }
+
+    function mediumMove(b) {
+      const win = winningMove(b, COMPUTER);
+      if (win !== -1) return win;
+      const block = winningMove(b, HUMAN);
+      if (block !== -1) return block;
+      return randomMove(b);
+    }
+
+    // Minimax: arvuti maksimeerib, inimene minimeerib.
+    // Sügavus eelistab kiiremaid võite ja aeglasemaid kaotusi.
+    function minimax(b, isComputerTurn, depth) {
+      const result = findWinner(b);
+      if (result) return result.winner === COMPUTER ? 10 - depth : depth - 10;
+      if (isFull(b)) return 0;
+
+      let best = isComputerTurn ? -Infinity : Infinity;
+      for (const i of emptyCells(b)) {
+        b[i] = isComputerTurn ? COMPUTER : HUMAN;
+        const value = minimax(b, !isComputerTurn, depth + 1);
+        b[i] = null;
+        best = isComputerTurn ? Math.max(best, value) : Math.min(best, value);
+      }
+      return best;
+    }
+
+    function bestMove(b) {
+      let bestScore = -Infinity;
+      let candidates = [];
+      for (const i of emptyCells(b)) {
+        b[i] = COMPUTER;
+        const value = minimax(b, false, 1);
+        b[i] = null;
+        if (value > bestScore) {
+          bestScore = value;
+          candidates = [i];
+        } else if (value === bestScore) {
+          candidates.push(i);
+        }
+      }
+      // Võrdsete käikude vahel vali juhuslikult, et mäng poleks alati sama
+      return candidates[Math.floor(Math.random() * candidates.length)];
+    }
+
+    document.getElementById('newGame').addEventListener('click', newGame);
+    newGame();
+  </script>
+</body>
+</html>
