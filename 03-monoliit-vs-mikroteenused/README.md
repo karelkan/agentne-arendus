@@ -2,6 +2,11 @@
 
 Brauseris töötav arhitektuurisõda Keskmaa kujundites. Monoliit on Barad-dûr, üks torn, mis valitseb kõiki. Mikroteenused on Sõpruskond, kus igaühel on oma ülesanne. Sina ehitad ühe poole, arvuti teise, ja lahing simuleeritakse automaatselt. Mäng näitab, millal on kummagi arhitektuuri tugevused ja nõrkused tähtsad.
 
+## Dokumendid
+
+- [JUHEND.md](JUHEND.md) on mängujuhend koos strateegianõuannetega.
+- [DOKUMENTATSIOON.md](DOKUMENTATSIOON.md) kirjeldab programmi ülesehitust, simulatsioonimudelit ja kõiki funktsioone.
+
 ## Käivitamine
 
 Ava `index.html` brauseris. Serverit ega paigaldust pole vaja.
