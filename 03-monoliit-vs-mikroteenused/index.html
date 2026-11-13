@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monoliit vs Mikroteenused</title>
+  <style>
+    :root {
+      --bg: #f3ead7;
+      --card: #fbf6ea;
+      --text: #2b2318;
+      --muted: #7a6a52;
+      --line: #dccdae;
+      --mono: #b3361f;
+      --micro: #2f7a52;
+      --gold: #a87508;
+      --bad: #c0392b;
+      --good: #2e8b57;
+      --field: #efe3c8;
+      --tower: #2d2620;
+      --eye: #ff8a1f;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #14110d;
+        --card: #1f1a14;
+        --text: #efe6d4;
+        --muted: #a8987c;
+        --line: #3a3127;
+        --mono: #ef6a4f;
+        --micro: #5fc58f;
+        --gold: #e0b04a;
+        --bad: #ff6b5b;
+        --good: #5fd08f;
+        --field: #1a1611;
+        --tower: #4a3e33;
+        --eye: #ff9a2f;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      padding: 16px;
+    }
+    main { max-width: 1180px; margin: 0 auto; }
+    h1 { font-family: Georgia, "Times New Roman", serif; font-size: 1.7rem; margin: 0 0 4px; text-align: center; }
+    h1 .vs { color: var(--gold); font-style: italic; }
+    .subtitle { text-align: center; color: var(--muted); margin: 0 0 20px; }
+    h2 { font-family: Georgia, serif; margin: 0 0 12px; font-size: 1.25rem; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+    button {
+      font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--line);
+      background: var(--card); color: var(--text); padding: 7px 14px;
+    }
+    button:hover:not(:disabled) { border-color: var(--gold); }
+    button:disabled { opacity: .4; cursor: default; }
+    button.primary { background: var(--gold); border-color: var(--gold); color: #fff; font-weight: 600; }
+    button.active { outline: 2px solid var(--gold); }
+    .hidden { display: none !important; }
+    .muted { color: var(--muted); }
+    .mono-c { color: var(--mono); }
+    .micro-c { color: var(--micro); }
+
+    /* Poole valik */
+    .sides { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .side-card { text-align: left; padding: 20px; border-width: 2px; border-radius: 14px; }
+    .side-card.mono:hover { border-color: var(--mono); }
+    .side-card.micro:hover { border-color: var(--micro); }
+    .side-card .big { font-size: 2.6rem; }
+    .side-card h3 { font-family: Georgia, serif; margin: 6px 0; font-size: 1.3rem; }
+    .side-card ul { margin: 8px 0 0; padding-left: 18px; line-height: 1.5; }
+    .stats-line { text-align: center; margin-top: 14px; font-size: .9rem; }
+
+    /* Ehitaja */
+    .builder { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; }
+    .items { display: grid; gap: 8px; }
+    .item { display: grid; grid-template-columns: 36px 1fr auto; gap: 10px; align-items: center;
+      padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; }
+    .item .ic { font-size: 1.6rem; text-align: center; }
+    .item .nm { font-weight: 600; }
+    .item .tech { font-size: .8rem; color: var(--gold); }
+    .item .ds { font-size: .82rem; color: var(--muted); }
+    .item .ctl { display: flex; align-items: center; gap: 6px; }
+    .item .ctl button { padding: 2px 10px; }
+    .item .cnt { min-width: 38px; text-align: center; font-variant-numeric: tabular-nums; }
+    .item .cost { font-size: .8rem; color: var(--muted); text-align: right; }
+    .budget { font-size: 1.4rem; font-weight: 700; color: var(--gold); }
+    .preview dl { display: grid; grid-template-columns: auto auto; gap: 4px 12px; margin: 10px 0; font-size: .92rem; }
+    .preview dt { color: var(--muted); }
+    .preview dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+    .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    input[type=number] { font: inherit; width: 120px; padding: 6px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--text); }
+
+    /* Lahing */
+    .hud { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; margin-bottom: 10px; }
+    .hp-box .lbl { display: flex; justify-content: space-between; font-weight: 600; font-size: .95rem; }
+    .hp-box.right .lbl { flex-direction: row-reverse; }
+    .tag { font-size: .7rem; padding: 1px 6px; border-radius: 6px; border: 1px solid currentColor; margin: 0 6px; }
+    .hp-bar { height: 14px; background: var(--line); border-radius: 7px; overflow: hidden; margin: 4px 0; }
+    .hp-fill { height: 100%; transition: width .4s; }
+    .hp-box.right .hp-bar { direction: rtl; }
+    .hp-sub { font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .hp-box.right .hp-sub { text-align: right; }
+    .wave { text-align: center; font-family: Georgia, serif; }
+    .wave .n { font-size: 1.5rem; font-weight: 700; }
+    .controls { display: flex; gap: 6px; justify-content: center; margin-top: 4px; }
+    .controls button { padding: 4px 10px; font-size: .9rem; }
+    .banner { min-height: 44px; text-align: center; padding: 8px; border-radius: 10px; margin-bottom: 8px;
+      border: 1px dashed var(--line); transition: background .3s; }
+    .banner.on { background: color-mix(in srgb, var(--gold) 18%, transparent); border-color: var(--gold); }
+    .banner b { font-family: Georgia, serif; }
+    .battle-grid { display: grid; grid-template-columns: 1fr 320px; gap: 12px; }
+    .field-wrap { position: relative; width: 100%; }
+    #field { width: 100%; height: 380px; display: block; border-radius: 12px; border: 1px solid var(--line); background: var(--field); }
+    #chart { width: 100%; height: 170px; display: block; }
+    .chart-tabs { display: flex; gap: 6px; margin-bottom: 6px; }
+    .chart-tabs button { padding: 2px 10px; font-size: .85rem; }
+    #log { height: 576px; overflow-y: auto; font-size: .82rem; line-height: 1.35; padding: 10px; }
+    #log div { padding: 3px 0; border-bottom: 1px solid var(--line); }
+    #log .w { color: var(--muted); font-variant-numeric: tabular-nums; margin-right: 4px; }
+    #log .event { font-weight: 600; color: var(--gold); }
+    #log .mono { border-left: 3px solid var(--mono); padding-left: 6px; }
+    #log .micro { border-left: 3px solid var(--micro); padding-left: 6px; }
+
+    /* Kokkuvõte */
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: flex; align-items: flex-start;
+      justify-content: center; padding: 30px 16px; overflow-y: auto; z-index: 10; }
+    .summary { max-width: 860px; width: 100%; }
+    .summary h2 { font-size: 1.6rem; text-align: center; }
+    table { width: 100%; border-collapse: collapse; font-size: .9rem; margin: 10px 0; }
+    th, td { padding: 5px 8px; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; }
+    th:first-child, td:first-child { text-align: left; }
+    .lessons { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; }
+    .lessons h3 { margin: 0 0 6px; font-family: Georgia, serif; }
+    .lessons ul { margin: 0; padding-left: 18px; line-height: 1.45; font-size: .9rem; }
+    .lessons li { margin-bottom: 6px; }
+
+    @media (max-width: 900px) {
+      .builder, .battle-grid, .lessons { grid-template-columns: 1fr; }
+      #log { height: 260px; }
+    }
+    @media (max-width: 600px) {
+      .sides { grid-template-columns: 1fr; }
+      .hud { grid-template-columns: 1fr; }
+      .hp-box.right .lbl { flex-direction: row; }
+      .hp-box.right .hp-bar { direction: ltr; }
+      .hp-box.right .hp-sub { text-align: left; }
+      #field { height: 320px; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Monoliit <span class="vs">vs</span> Mikroteenused</h1>
+  <p class="subtitle">Arhitektuurisõda Keskmaal. Ehita oma süsteem ja vaata, kumb peab koormusele ja rikkele paremini vastu.</p>
+
+  <!-- 1. Poole valik -->
+  <section id="screen-side">
+    <div class="sides">
+      <button class="card side-card mono" data-side="mono">
+        <div class="big">🗼</div>
+        <h3 class="mono-c">Monoliit: Barad-dûr</h3>
+        <div class="muted">Üks torn, mis valitseb kõiki.</div>
+        <ul>
+          <li>Väike latentsus, sest kõik kutsed on protsessisisesed</li>
+          <li>Odav toores jõud</li>
+          <li>Üks jagatud andmebaas</li>
+          <li>Kui torn kukub, seisab kõik</li>
+        </ul>
+      </button>
+      <button class="card side-card micro" data-side="micro">
+        <div class="big">🧙🪓💍🌳</div>
+        <h3 class="micro-c">Mikroteenused: Sõpruskond</h3>
+        <div class="muted">Igaüks oma ülesandega ja üksteisest sõltumatud.</div>
+        <ul>
+          <li>Rikked jäävad isoleerituks</li>
+          <li>Iga teenust saab eraldi skaleerida</li>
+          <li>Iga võrguhüpe lisab latentsust</li>
+          <li>Võrgu jagunemine ja kaskaadtõrked ohustavad</li>
+        </ul>
+      </button>
+    </div>
+    <div class="stats-line muted" id="stats-line"></div>
+  </section>
+
+  <!-- 2. Ehitaja -->
+  <section id="screen-build" class="hidden">
+    <div class="builder">
+      <div class="card">
+        <h2 id="build-title"></h2>
+        <p class="muted" id="build-base" style="margin-top:-6px"></p>
+        <div class="items" id="items"></div>
+      </div>
+      <div class="card preview">
+        <div class="row" style="justify-content:space-between">
+          <span>Eelarve</span><span class="budget" id="budget"></span>
+        </div>
+        <dl id="preview"></dl>
+        <p class="muted" style="font-size:.85rem">
+          Koormus algab umbes 130 päringust laines ja kasvab 30. laineks umbes 330-ni.
+          20.–21. laines tuleb <b>Must reede</b>, kus koormus kahekordistub. SLA on 300 ms ja aeglasemad päringud loetakse ebaõnnestunuks.
+        </p>
+        <div class="row" style="margin:12px 0">
+          <label for="seed">Seeme</label>
+          <input type="number" id="seed">
+          <button id="seed-rnd" title="Uus juhuslik seeme">🎲</button>
+        </div>
+        <div class="row">
+          <button id="back-side">← Vali pool</button>
+          <button id="reset-build">Tühjenda</button>
+          <button class="primary" id="start">Alusta lahingut ⚔️</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Lahing -->
+  <section id="screen-battle" class="hidden">
+    <div class="hud">
+      <div class="hp-box">
+        <div class="lbl"><span class="mono-c">🗼 Monoliit<span class="tag" id="tag-mono"></span></span><span id="hp-mono-n"></span></div>
+        <div class="hp-bar"><div class="hp-fill" id="hp-mono" style="background:var(--mono)"></div></div>
+        <div class="hp-sub" id="sub-mono"></div>
+      </div>
+      <div class="wave">
+        <div>Laine <span class="n" id="wave-n">0</span> / 30</div>
+        <div class="controls">
+          <button id="pause" title="Paus / jätka">⏸</button>
+          <button data-speed="1">1×</button>
+          <button data-speed="2">2×</button>
+          <button data-speed="4">4×</button>
+          <button id="finish" title="Simuleeri kohe lõpuni">⏭</button>
+        </div>
+      </div>
+      <div class="hp-box right">
+        <div class="lbl"><span class="micro-c">Mikroteenused 🧙<span class="tag" id="tag-micro"></span></span><span id="hp-micro-n"></span></div>
+        <div class="hp-bar"><div class="hp-fill" id="hp-micro" style="background:var(--micro)"></div></div>
+        <div class="hp-sub" id="sub-micro"></div>
+      </div>
+    </div>
+    <div class="banner" id="banner"><span class="muted">Lahing algab…</span></div>
+    <div class="battle-grid">
+      <div>
+        <div class="field-wrap"><canvas id="field"></canvas></div>
+        <div class="card" style="margin-top:12px;padding:10px">
+          <div class="chart-tabs">
+            <button data-chart="hp" class="active">Elud</button>
+            <button data-chart="served">Teenindatud</button>
+            <button data-chart="lat">Latentsus</button>
+            <button data-chart="failed">Ebaõnnestunud</button>
+          </div>
+          <canvas id="chart"></canvas>
+        </div>
+      </div>
+      <div class="card" id="log"></div>
+    </div>
+  </section>
+
+  <!-- 4. Kokkuvõte -->
+  <div class="overlay hidden" id="overlay">
+    <div class="card summary">
+      <h2 id="sum-title"></h2>
+      <p class="muted" style="text-align:center" id="sum-sub"></p>
+      <table id="sum-table"></table>
+      <div class="lessons">
+        <div><h3 class="mono-c">🗼 Monoliidi õppetunnid</h3><ul id="les-mono"></ul></div>
+        <div><h3 class="micro-c">🧙 Mikroteenuste õppetunnid</h3><ul id="les-micro"></ul></div>
+      </div>
+      <div class="row" style="justify-content:center;margin-top:16px">
+        <button id="again-seed">🔁 Sama seemnega uuesti</button>
+        <button id="again-build">🛠️ Muuda ehitust</button>
+        <button class="primary" id="again-new">⚔️ Uus lahing</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+'use strict';
+
+// ---------- Konstandid ----------
+const MAX_WAVES = 30, START_HP = 1000, SLA = 300, BUDGET = 100;
+const TYPES = ['gw', 'auth', 'core', 'db'];
+const TYPE_INFO = {
+  gw:   { icon: '🧙', name: 'Gateway-võlur', short: 'Gateway', cap: 200 },
+  auth: { icon: '🪓', name: 'Auth-päkapikk', short: 'Auth', cap: 150 },
+  core: { icon: '💍', name: 'Sõrmuseteenus', short: 'Core', cap: 110 },
+  db:   { icon: '🌳', name: 'Ent-andmebaas', short: 'DB', cap: 120 },
+};
+
+const ITEMS = {
+  mono: [
+    { id: 'cpu', icon: '🌋', name: 'Mordori ahjud', tech: 'CPU / vertikaalne skaleerimine', desc: 'Iga koopia maht kasvab 70 päringu võrra', cost: 10, max: 5 },
+    { id: 'db', icon: '🏰', name: 'Barad-dûri võlvid', tech: 'Suurem andmebaas', desc: 'Andmebaasi maht kasvab 100 võrra ja lukk on lühem', cost: 10, max: 4 },
+    { id: 'cache', icon: '🔮', name: 'Palantíri vahemälu', tech: 'Cache', desc: 'Andmebaasi koormus väheneb 15% ja latentsus langeb', cost: 10, max: 3 },
+    { id: 'hard', icon: '⛓️', name: 'Raudmüürid', tech: 'Kõvendamine / ressursipiirangud', desc: 'Ülekoormus kahjustab torni 20% vähem', cost: 8, max: 3 },
+    { id: 'replica', icon: '🗼', name: 'Musta Värava garnison', tech: 'Koormusjaotur + monoliidi koopia', desc: 'Kogu monoliidi lisakoopia, mis võimaldab ka rolling deploy\'d', cost: 25, max: 2 },
+    { id: 'monitor', icon: '👁️', name: 'Sauroni Silm', tech: 'Monitooring ja alarmid', desc: 'Kiirem taaskäivitus ja mäluleke avastatakse varem', cost: 10, max: 1 },
+  ],
+  micro: [
+    { id: 'gw', icon: '🧙', name: 'Gateway-võlur', tech: 'API gateway eksemplar', desc: 'Sissetuleva liikluse maht kasvab 200 võrra', cost: 8, max: 5 },
+    { id: 'auth', icon: '🪓', name: 'Auth-päkapikk', tech: 'Autentimisteenuse eksemplar', desc: 'Maht kasvab 150 võrra', cost: 6, max: 5 },
+    { id: 'core', icon: '💍', name: 'Sõrmuseteenus', tech: 'Äriloogika eksemplar', desc: 'Maht kasvab 110 võrra', cost: 8, max: 5 },
+    { id: 'db', icon: '🌳', name: 'Ent-andmebaas', tech: 'Andmebaasi eksemplar (database per service)', desc: 'Maht kasvab 120 võrra', cost: 8, max: 5 },
+    { id: 'cache', icon: '🧝', name: 'Haldja-vahemälu', tech: 'Hajutatud cache', desc: 'Andmebaasi koormus väheneb 25% ja latentsus langeb', cost: 8, max: 2 },
+    { id: 'queue', icon: '🧺', name: 'Hobbiti-järjekord', tech: 'Sõnumijärjekord', desc: 'Puhverdab tippkoormusel kuni 150 päringut ja kaitseb teenuseid', cost: 8, max: 2 },
+    { id: 'breaker', icon: '🔥', name: 'Gondori tulukesed', tech: 'Circuit breaker', desc: 'Peatab kaskaadtõrked, sest teenus ei oota kukkunud naabrit', cost: 10, max: 1 },
+    { id: 'retry', icon: '🏹', name: 'Legolase täpsus', tech: 'Retry + exponential backoff', desc: 'Kordab ebaõnnestunud päringuid targalt ega tekita retry-tormi', cost: 6, max: 1 },
+    { id: 'mesh', icon: '🕸️', name: 'Haldjate võrk', tech: 'Service mesh', desc: 'Võrgu jagunemisel suunab liikluse ümber (+2 ms iga hüppe kohta)', cost: 12, max: 1 },
+    { id: 'autoscale', icon: '🦅', name: 'Kotkaste autoscaler', tech: 'Horisontaalne autoskaleerimine', desc: 'Lisab pudelikaelale kuni 3 eksemplari', cost: 14, max: 1 },
+  ],
+};
+
+const EVENTS = {
+  ddos:        { icon: '🦇', name: 'Nazgûlide DDoS', desc: 'Koormus kasvab 70%.' },
+  balrog:      { icon: '🔥', name: 'Balrog ärkab', desc: 'Andmebaasilukk. Monoliidis lukustub jagatud andmebaas, mikroteenustes ainult ühe teenuse andmebaas.' },
+  partition:   { icon: '✂️', name: 'Võrgu jagunemine Moria all', desc: 'Mikroteenuste vaheline võrk katkeb. Monoliiti see peaaegu ei puuduta.' },
+  leak:        { icon: '🧪', name: 'Sarumani mäluleke', desc: 'Vigane kood sööb mälu.' },
+  party:       { icon: '🍺', name: 'Hobbitide pidu', desc: 'Kõik on peol ja koormus langeb 40%.' },
+  deploy:      { icon: '📦', name: 'Uue versiooni deploy', desc: 'Mõlemad pooled paigaldavad uue versiooni.' },
+  blackfriday: { icon: '⚔️', name: 'Pelennori väljade lahing (Must reede)', desc: 'Koormus kahekordistub.' },
+};
+
+const CAUSE_NAMES = {
+  'ülekoormus': 'Ülekoormus',
+  'krahh': 'Krahh / seisak',
+  'deploy': 'Deploy seisak',
+  'andmebaasilukk': 'Andmebaasilukk',
+  'latentsus': 'Latentsus üle SLA',
+  'võrgu jagunemine': 'Võrgu jagunemine',
+  'kaskaadtõrge': 'Kaskaadtõrge',
+};
+
+// ---------- Abifunktsioonid ----------
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const $ = id => document.getElementById(id);
+const fmt = n => Math.round(n).toLocaleString('et-EE');
+
+function emptyBuild(side) {
+  const b = {};
+  ITEMS[side].forEach(it => b[it.id] = 0);
+  return b;
+}
+function spent(side, b) {
+  return ITEMS[side].reduce((s, it) => s + it.cost * b[it.id], 0);
+}
+function newStats() {
+  return { served: 0, failed: 0, latSum: 0, latN: 0, causes: {}, peakLoad: 0, downWaves: 0,
+           retryLoad: 0, retried: 0, autoscaled: 0, buffered: 0, cascades: 0 };
+}
+function addCause(S, c, n) { if (n > 0) S.causes[c] = (S.causes[c] || 0) + n; }
+
+// ---------- Monoliidi simulatsioon ----------
+function monoCaps(b) {
+  return {
+    per: 160 + 70 * b.cpu,
+    db: (220 + 100 * b.db) / (1 - 0.15 * b.cache),
+    replicas: 1 + b.replica,
+    baseLat: 25 - 5 * b.cache,
+  };
+}
+
+function makeMono(b) {
+  return {
+    kind: 'mono', b, hp: START_HP, stats: newStats(), lock: 0, util: 0,
+    replicas: Array.from({ length: 1 + b.replica }, () => ({ stab: 100, down: 0, deploying: false })),
+  };
+}
+
+function tickMono(m, load, ev, rng, log) {
+  const b = m.b, S = m.stats, c = monoCaps(b);
+  let deployAll = false;
+  if (ev) {
+    if (ev.type === 'balrog') {
+      m.lock = Math.max(1, 3 - Math.floor(b.db / 2));
+      log(`⛓️ Balrog lukustas ainsa jagatud andmebaasi ${m.lock} laineks ja kogu torn ootab.`);
+    }
+    if (ev.type === 'leak') {
+      const d = b.monitor ? 15 : 40;
+      m.replicas.forEach(r => { if (!r.down) r.stab -= d; });
+      log(b.monitor ? '👁️ Sauroni Silm märkas mälulekke kiiresti (stabiilsus −15).' : '🧪 Mäluleke tabas kõiki koopiaid (stabiilsus −40).');
+    }
+    if (ev.type === 'partition') {
+      log('✂️ Võrgu jagunemine monoliiti peaaegu ei puuduta, sest kõik kutsed on protsessisisesed.');
+    }
+    if (ev.type === 'deploy') {
+      const up = m.replicas.filter(r => !r.down);
+      if (up.length > 1) { up[0].deploying = true; log('🔧 Rolling deploy: üks koopia uueneb, teised teenindavad edasi.'); }
+      else { deployAll = true; log('🔧 Deploy: kogu monoliit taaskäivitub. Hoolduse ajal jääb alles vaid 40% mahust.'); }
+      if (ev.bugMono) {
+        m.replicas.forEach(r => { if (!r.down) r.stab -= 35; });
+        log('🐛 Uues versioonis on viga ja see tabab kogu monoliiti (stabiilsus −35).');
+      }
+    }
+  }
+
+  const up = m.replicas.filter(r => !r.down && !r.deploying);
+  const cap = up.length * c.per * (deployAll ? 0.4 : 1);
+  const dbCap = m.lock > 0 ? c.db * 0.35 : c.db;
+  const eff = Math.min(cap, dbCap);
+  let served = Math.min(load, eff);
+  let failed = load - served;
+
+  let cause = 'ülekoormus';
+  if (up.length === 0) cause = 'krahh';
+  else if (deployAll) cause = 'deploy';
+  else if (m.lock > 0 && dbCap < cap) cause = 'andmebaasilukk';
+  addCause(S, cause, failed);
+  if (up.length === 0) S.downWaves++;
+
+  const util = eff > 0 ? load / eff : 0;
+  let lat = 0;
+  if (eff > 0) {
+    lat = c.baseLat / Math.max(0.07, 1 - util * 0.95);
+    if (m.lock > 0) lat += 120;
+    const frac = clamp((lat - SLA) / 600, 0, 0.8);
+    const to = served * frac;
+    served -= to; failed += to; addCause(S, 'latentsus', to);
+    S.latSum += lat; S.latN++;
+  }
+
+  // Stabiilsus
+  const per = up.length ? load / cap : 0;
+  const stress = Math.max(per, util);
+  for (const r of up) {
+    if (stress > 0.9) r.stab -= (Math.min(stress, 2.5) - 0.9) * 110 * (1 - 0.2 * b.hard);
+    else if (stress < 0.8) r.stab = Math.min(100, r.stab + 10);
+  }
+  m.replicas.forEach((r, i) => {
+    const nm = m.replicas.length > 1 ? `Torn ${i + 1}` : 'Torn';
+    if (r.down > 0) {
+      r.down--;
+      if (r.down === 0) { r.stab = 60; log(`♻️ ${nm} käivitus uuesti (külmkäivitus, stabiilsus 60).`); }
+    } else if (r.stab <= 0) {
+      r.down = b.monitor ? 2 : 3; r.stab = 0;
+      log(`💥 ${nm} kukkus kokku! Taaskäivitus võtab ${r.down} lainet.`);
+    }
+    r.deploying = false;
+  });
+  if (m.lock > 0) m.lock--;
+
+  m.util = util;
+  S.served += served; S.failed += failed; S.peakLoad = Math.max(S.peakLoad, load);
+  return { served, failed, lat, load };
+}
+
+// ---------- Mikroteenuste simulatsioon ----------
+function makeMicro(b) {
+  const inst = {};
+  TYPES.forEach(t => inst[t] = Array.from({ length: 1 + b[t] }, () => ({ h: 100, down: 0, auto: false, deploying: false })));
+  return { kind: 'micro', b, hp: START_HP, stats: newStats(), inst, backlog: 0, retryNext: 0,
+           partition: null, partT: 0, dbLock: 0, autoAdded: 0, pendingScale: null,
+           cascadeRecent: false, cascadeLat: 0, util: {} };
+}
+
+function microCaps(s, deployHalf) {
+  const b = s.b, cap = {};
+  for (const t of TYPES) {
+    const up = s.inst[t].filter(i => !i.down && !i.deploying).length;
+    let c = up * TYPE_INFO[t].cap;
+    if (t === 'db') { c /= (1 - 0.25 * b.cache); if (s.dbLock > 0) c *= 0.6; }
+    if (deployHalf === t) c *= 0.5;
+    if (s.partition === t) c *= b.mesh ? 0.75 : 0.3;
+    cap[t] = c;
+  }
+  return cap;
+}
+
+function microBaseLat(b) {
+  return 8 * 3 + 10 * (1 - 0.4 * Math.min(1, b.cache)) + 4 * (8 + (b.mesh ? 2 : 0));
+}
+
+function tickMicro(s, load, ev, rng, log) {
+  const b = s.b, S = s.stats;
+  if (s.pendingScale) {
+    s.inst[s.pendingScale].push({ h: 100, down: 0, auto: true, deploying: false });
+    s.autoAdded++; S.autoscaled++;
+    log(`🦅 Kotkad tõid teenusele ${TYPE_INFO[s.pendingScale].name} uue eksemplari.`);
+    s.pendingScale = null;
+  }
+  let deployHalf = null;
+  if (ev) {
+    if (ev.type === 'balrog') {
+      s.dbLock = 2;
+      log('⛓️ Balrog lukustas ühe teenuse andmebaasi. Teised teenused töötavad edasi (andmebaasi maht −40%).');
+    }
+    if (ev.type === 'leak') {
+      const all = TYPES.flatMap(t => s.inst[t].filter(i => !i.down));
+      if (all.length) { all[Math.floor(rng() * all.length)].h -= 60; log('🧪 Mäluleke tabas üht eksemplari ja teised seda ei tunne.'); }
+    }
+    if (ev.type === 'partition') {
+      s.partition = TYPES[1 + Math.floor(rng() * 3)]; s.partT = 2;
+      const nm = TYPE_INFO[s.partition].name;
+      log(b.mesh ? `🕸️ Võrk jagunes teenuse ${nm} juures, aga service mesh suunab 75% liiklusest ümber.`
+                 : `✂️ Võrk jagunes ja teenus ${nm} on teistest suures osas ära lõigatud!`);
+    }
+    if (ev.type === 'deploy') {
+      const t = TYPES[Math.floor(rng() * 4)], nm = TYPE_INFO[t].name;
+      const up = s.inst[t].filter(i => !i.down);
+      if (up.length > 1) { up[0].deploying = true; log(`🔧 Deploy puudutab ainult teenust ${nm}: üks eksemplar korraga.`); }
+      else { deployHalf = t; log(`🔧 Deploy teenusele ${nm}. Eksemplare on ainult üks, seega maht on selles laines pool.`); }
+      if (ev.bugMicro) {
+        s.inst[t].forEach(i => { if (!i.down) i.h -= 45; });
+        log(`🐛 Uues versioonis on viga, aga see mõjutab ainult teenust ${nm}.`);
+      }
+    }
+  }
+
+  // Pimesi korduvad päringud (retry-torm) eelmisest lainest
+  if (s.retryNext > 0) { S.retryLoad += s.retryNext; load += s.retryNext; s.retryNext = 0; }
+  const incoming = load + s.backlog;
+  const cap = microCaps(s, deployHalf);
+  const sysCap = Math.min(...TYPES.map(t => cap[t]));
+  const bottleneck = TYPES.reduce((a, t) => cap[t] < cap[a] ? t : a);
+
+  let served = Math.min(incoming, sysCap);
+  const overflow = incoming - served;
+  const buffered = Math.min(overflow, 150 * b.queue);
+  let failed = overflow - buffered;
+  s.backlog = buffered;
+  S.buffered += buffered;
+
+  // Põhjus
+  let cause = 'ülekoormus';
+  const partHit = s.partition && s.partition === bottleneck;
+  if (sysCap === 0) cause = s.cascadeRecent ? 'kaskaadtõrge' : 'krahh';
+  else if (partHit) cause = 'võrgu jagunemine';
+  else if (s.cascadeRecent) cause = 'kaskaadtõrge';
+  else if (s.dbLock > 0 && bottleneck === 'db') cause = 'andmebaasilukk';
+  addCause(S, cause, failed);
+  if (sysCap === 0) S.downWaves++;
+
+  // Iga teenuse koormus
+  const demand = {};
+  for (const t of TYPES) {
+    if (t === 'gw') demand[t] = incoming;
+    else demand[t] = b.queue ? Math.min(incoming, cap.gw, sysCap * 0.95 + 1) : Math.min(incoming, cap.gw);
+  }
+  const util = {};
+  TYPES.forEach(t => util[t] = cap[t] > 0 ? demand[t] / cap[t] : 0);
+
+  // Latentsus
+  let lat = 0;
+  if (sysCap > 0) {
+    for (const t of TYPES) {
+      const base = t === 'db' ? 10 * (1 - 0.4 * Math.min(1, b.cache)) : 8;
+      lat += base / Math.max(0.07, 1 - Math.min(util[t], 1) * 0.95);
+    }
+    lat += 4 * (8 + (b.mesh ? 2 : 0));
+    lat += (s.backlog / sysCap) * 250;
+    lat += s.cascadeLat;
+    const frac = clamp((lat - SLA) / 600, 0, 0.8);
+    const to = served * frac;
+    served -= to; failed += to; addCause(S, 'latentsus', to);
+    S.latSum += lat; S.latN++;
+  }
+
+  // Kordused
+  if (failed > 0) {
+    if (b.retry) {
+      const rec = Math.min(failed * 0.6, Math.max(0, sysCap - served - buffered));
+      served += rec; failed -= rec; S.retried += rec;
+    } else {
+      s.retryNext = failed * 0.4;
+      if (s.retryNext > 40) log(`🔁 Kliendid kordavad pimesi ja järgmisse lainesse tuleb ${fmt(s.retryNext)} lisapäringut (retry-torm).`);
+    }
+  }
+
+  // Ülekoormuse kahju
+  for (const t of TYPES) {
+    const u = util[t];
+    for (const i of s.inst[t]) {
+      if (i.down || i.deploying) continue;
+      if (u > 0.9) i.h -= (Math.min(u, 2.5) - 0.9) * 110;
+      else if (u < 0.8) i.h = Math.min(100, i.h + 12);
+    }
+  }
+
+  // Kaskaad: kukkuv või äralõigatud teenus paneb ülesvoolu teenused ootama
+  const problem = TYPES.filter(t =>
+    s.inst[t].some(i => !i.down && i.h <= 0) || (s.partition === t && !b.mesh) || (sysCap === 0 && cap[t] === 0));
+  s.cascadeRecent = false; s.cascadeLat = 0;
+  if (problem.length) {
+    const deepest = Math.max(...problem.map(t => TYPES.indexOf(t)));
+    if (deepest > 0) {
+      if (b.breaker) {
+        log(`🔥 Circuit breaker avanes: teenused ei oota katkist teenust ${TYPE_INFO[TYPES[deepest]].name} ja vastavad kohe.`);
+      } else {
+        TYPES.slice(0, deepest).forEach(t => s.inst[t].forEach(i => { if (!i.down) i.h -= 25; }));
+        s.cascadeRecent = true; s.cascadeLat = 150; S.cascades++;
+        log(`🌊 Kaskaad: ülesvoolu teenused ootavad teenust ${TYPE_INFO[TYPES[deepest]].name} ja nende lõimed on kinni (−25 tervist).`);
+      }
+    }
+  }
+
+  // Taaskäivitused ja krahhid
+  for (const t of TYPES) {
+    let crashed = 0;
+    for (const i of s.inst[t]) {
+      if (i.down > 0) { i.down--; if (i.down === 0) i.h = 70; }
+      else if (i.h <= 0) { i.down = 1; i.h = 0; crashed++; }
+      i.deploying = false;
+    }
+    if (crashed) log(`💥 ${crashed > 1 ? crashed + '× ' : ''}${TYPE_INFO[t].name} kukkus. Konteiner käivitub järgmises laines uuesti.`);
+  }
+
+  // Autoskaleerimine
+  if (b.autoscale && s.autoAdded < 3 && !s.pendingScale && cap[bottleneck] > 0 && util[bottleneck] > 0.85
+      && s.partition !== bottleneck) {
+    s.pendingScale = bottleneck;
+  }
+
+  if (s.partT > 0 && --s.partT === 0) { log('🕸️ Võrk on taastunud.'); s.partition = null; }
+  if (s.dbLock > 0) s.dbLock--;
+
+  s.util = util;
+  S.served += served; S.failed += failed; S.peakLoad = Math.max(S.peakLoad, load);
+  return { served, failed, lat, load };
+}
+
+// ---------- Sündmused ja koormus ----------
+function genEvents(rng) {
+  const ev = {};
+  [6, 12, 18, 24].forEach(w => ev[w] = { type: 'deploy', bugMono: rng() < 0.3, bugMicro: rng() < 0.3 });
+  ev[20] = { type: 'blackfriday' }; ev[21] = { type: 'blackfriday' };
+  const pool = ['ddos', 'ddos', 'balrog', 'balrog', 'partition', 'partition', 'leak', 'leak', 'party'];
+  for (let w = 3; w <= MAX_WAVES; w++) {
+    if (ev[w]) continue;
+    if (rng() < 0.32) ev[w] = { type: pool[Math.floor(rng() * pool.length)] };
+  }
+  for (const w in ev) Object.assign(ev[w], EVENTS[ev[w].type]);
+  return ev;
+}
+
+function waveLoad(w, rng, ev) {
+  let L = (120 + 7 * w) * (0.88 + rng() * 0.24);
+  if (ev?.type === 'ddos') L *= 1.7;
+  if (ev?.type === 'blackfriday') L *= 2;
+  if (ev?.type === 'party') L *= 0.6;
+  return Math.round(L);
+}
+
+// Teenindatud päring on rünnak vastase vastu. Mida kiirem vastus, seda rõõmsam kasutaja ja seda tugevam löök.
+function hitPower(r) {
+  return r.served * 0.18 * clamp(1.3 - r.lat / 300, 0.5, 1.2);
+}
+
+// ---------- Arvuti vastane ----------
+const AI_STRATEGIES = {
+  mono: [
+    { name: 'Jõuline torn', prio: ['cpu', 'cpu', 'db', 'cpu', 'cache', 'db', 'cpu', 'hard', 'monitor', 'cpu', 'cache'] },
+    { name: 'Kaks torni', prio: ['replica', 'cpu', 'db', 'cpu', 'db', 'monitor', 'cache', 'hard'] },
+    { name: 'Tasakaalukas', prio: ['cpu', 'db', 'cache', 'monitor', 'cpu', 'hard', 'db', 'cpu', 'cache'] },
+  ],
+  micro: [
+    { name: 'Vastupidav', prio: ['core', 'breaker', 'db', 'retry', 'auth', 'mesh', 'cache', 'core', 'gw'] },
+    { name: 'Skaleeruv', prio: ['autoscale', 'core', 'queue', 'db', 'cache', 'auth', 'breaker', 'core'] },
+    { name: 'Toores jõud', prio: ['core', 'db', 'auth', 'core', 'cache', 'db', 'gw', 'core', 'auth', 'retry'] },
+  ],
+};
+
+function aiBuild(side, rng) {
+  const strat = AI_STRATEGIES[side][Math.floor(rng() * AI_STRATEGIES[side].length)];
+  const b = emptyBuild(side);
+  const byId = Object.fromEntries(ITEMS[side].map(it => [it.id, it]));
+  let money = BUDGET;
+  const tryBuy = id => {
+    const it = byId[id];
+    if (b[id] < it.max && it.cost <= money) { b[id]++; money -= it.cost; return true; }
+    return false;
+  };
+  strat.prio.forEach(tryBuy);
+  let bought = true;
+  while (bought) { bought = false; for (const id of strat.prio) if (tryBuy(id)) bought = true; }
+  return { build: b, strategy: strat.name };
+}
+
+function describeBuild(side, b) {
+  const parts = ITEMS[side].filter(it => b[it.id] > 0).map(it => `${it.icon}${b[it.id] > 1 ? '×' + b[it.id] : ''}`);
+  return parts.length ? parts.join(' ') : 'ainult põhikomplekt';
+}
+
+// ---------- Statistika (localStorage) ----------
+function loadRecord() {
+  try { return JSON.parse(localStorage.getItem('mvm-record')) || { mono: [0, 0, 0], micro: [0, 0, 0] }; }
+  catch { return { mono: [0, 0, 0], micro: [0, 0, 0] }; }
+}
+function saveRecord(r) { try { localStorage.setItem('mvm-record', JSON.stringify(r)); } catch {} }
+function renderRecord() {
+  const r = loadRecord();
+  const f = a => `${a[0]} võitu, ${a[1]} kaotust, ${a[2]} viiki`;
+  const total = r.mono.concat(r.micro).reduce((a, b) => a + b, 0);
+  $('stats-line').textContent = total
+    ? `Sinu ajalugu: monoliidina ${f(r.mono)} · mikroteenustena ${f(r.micro)}`
+    : 'Vali pool. Arvuti juhib teist poolt.';
+}
+
+// ---------- Olek ----------
+let playerSide = null;
+let playerBuild = null;
+let game = null;
+let speed = 1;
+let paused = false;
+let chartMode = 'hp';
+
+function show(id) {
+  ['screen-side', 'screen-build', 'screen-battle'].forEach(s => $(s).classList.toggle('hidden', s !== id));
+}
+
+// ---------- Ehitaja ----------
+function openBuilder(side) {
+  if (playerSide !== side) { playerSide = side; playerBuild = emptyBuild(side); }
+  $('build-title').innerHTML = side === 'mono'
+    ? '<span class="mono-c">🗼 Ehita oma Barad-dûr</span>'
+    : '<span class="micro-c">🧙 Kogu oma Sõpruskond</span>';
+  $('build-base').textContent = side === 'mono'
+    ? 'Tasuta põhikomplekt: 1 torn (maht 160) ja jagatud andmebaas (maht 220).'
+    : 'Tasuta põhikomplekt: igast teenusest 1 eksemplar (Gateway 200, Auth 150, Core 110, DB 120).';
+  if (!$('seed').value) $('seed').value = Math.floor(Math.random() * 1e6);
+  renderBuilder();
+  show('screen-build');
+}
+
+function renderBuilder() {
+  const side = playerSide, b = playerBuild;
+  const left = BUDGET - spent(side, b);
+  $('budget').textContent = `${left} / ${BUDGET} 🪙`;
+  $('items').innerHTML = ITEMS[side].map(it => `
+    <div class="item">
+      <div class="ic">${it.icon}</div>
+      <div>
+        <div class="nm">${it.name}</div>
+        <div class="tech">${it.tech}</div>
+        <div class="ds">${it.desc}</div>
+      </div>
+      <div>
+        <div class="ctl">
+          <button data-act="-" data-id="${it.id}" ${b[it.id] === 0 ? 'disabled' : ''}>−</button>
+          <span class="cnt">${b[it.id]}/${it.max}</span>
+          <button data-act="+" data-id="${it.id}" ${b[it.id] >= it.max || it.cost > left ? 'disabled' : ''}>+</button>
+        </div>
+        <div class="cost">${it.cost} 🪙</div>
+      </div>
+    </div>`).join('');
+  renderPreview();
+}
+
+function renderPreview() {
+  const b = playerBuild;
+  let rows;
+  if (playerSide === 'mono') {
+    const c = monoCaps(b);
+    const total = c.per * c.replicas;
+    rows = [
+      ['Tornide arv', c.replicas],
+      ['Arvutusmaht', `${fmt(total)} päringut`],
+      ['Andmebaasi maht', `${fmt(c.db)} päringut`],
+      ['Max läbilase', `<b>${fmt(Math.min(total, c.db))}</b> päringut/laine`],
+      ['Baaslatentsus', `${c.baseLat} ms`],
+      ['Taaskäivitus', b.monitor ? '2 lainet' : '3 lainet'],
+      ['Deploy', c.replicas > 1 ? 'rolling (seisakuta)' : '⚠️ hooldusaken (60% mahust kaob)'],
+    ];
+  } else {
+    const tmp = makeMicro(b);
+    const cap = microCaps(tmp, null);
+    const sys = Math.min(...TYPES.map(t => cap[t]));
+    const bn = TYPES.reduce((a, t) => cap[t] < cap[a] ? t : a);
+    rows = TYPES.map(t => [`${TYPE_INFO[t].icon} ${TYPE_INFO[t].short}`, `${1 + b[t]} × → ${fmt(cap[t])}`]);
+    rows.push(['Max läbilase', `<b>${fmt(sys)}</b> päringut/laine`]);
+    rows.push(['Pudelikael', TYPE_INFO[bn].short]);
+    rows.push(['Baaslatentsus', `${fmt(microBaseLat(b))} ms`]);
+    rows.push(['Kaitsed', ['breaker', 'retry', 'mesh', 'autoscale', 'queue'].filter(k => b[k]).map(k => ITEMS.micro.find(i => i.id === k).icon).join(' ') || '—']);
+  }
+  $('preview').innerHTML = rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
+}
+
+$('items').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+  const it = ITEMS[playerSide].find(i => i.id === btn.dataset.id);
+  const left = BUDGET - spent(playerSide, playerBuild);
+  if (btn.dataset.act === '+' && playerBuild[it.id] < it.max && it.cost <= left) playerBuild[it.id]++;
+  if (btn.dataset.act === '-' && playerBuild[it.id] > 0) playerBuild[it.id]--;
+  renderBuilder();
+});
+
+document.querySelectorAll('[data-side]').forEach(b => b.addEventListener('click', () => openBuilder(b.dataset.side)));
+$('back-side').onclick = () => { show('screen-side'); renderRecord(); };
+$('reset-build').onclick = () => { playerBuild = emptyBuild(playerSide); renderBuilder(); };
+$('seed-rnd').onclick = () => { $('seed').value = Math.floor(Math.random() * 1e6); };
+$('start').onclick = () => startBattle(parseInt($('seed').value, 10) || 1);
+
+// ---------- Lahing ----------
+function startBattle(seed) {
+  $('seed').value = seed;
+  const aiSide = playerSide === 'mono' ? 'micro' : 'mono';
+  const ai = aiBuild(aiSide, mulberry32(seed ^ 0x9e3779b9));
+  const builds = { [playerSide]: { ...playerBuild }, [aiSide]: ai.build };
+  clearTimeout(game?.timer);
+  game = {
+    seed, aiSide, aiStrategy: ai.strategy, builds,
+    rng: mulberry32(seed + 2),
+    events: genEvents(mulberry32(seed + 1)),
+    mono: makeMono(builds.mono),
+    micro: makeMicro(builds.micro),
+    wave: 0, hist: [], over: false, timer: null, seen: new Set(), last: null,
+  };
+  particles = [];
+  $('log').innerHTML = '';
+  $('overlay').classList.add('hidden');
+  $('tag-mono').textContent = playerSide === 'mono' ? 'SINA' : 'ARVUTI';
+  $('tag-micro').textContent = playerSide === 'micro' ? 'SINA' : 'ARVUTI';
+  $('banner').className = 'banner';
+  $('banner').innerHTML = '<span class="muted">Väed rivistuvad…</span>';
+  log(0, 'event', `⚔️ Lahing algab (seeme ${seed}).`);
+  log(0, aiSide, `🤖 Arvuti strateegia „${ai.strategy}”: ${describeBuild(aiSide, ai.build)}`);
+  log(0, playerSide, `🧑 Sinu ehitus: ${describeBuild(playerSide, playerBuild)}`);
+  paused = false;
+  updateControls();
+  show('screen-battle');
+  resizeCanvases();
+  updateHud();
+  drawChart();
+  schedule();
+}
+
+function schedule() {
+  clearTimeout(game.timer);
+  if (game.over || paused) return;
+  game.timer = setTimeout(() => { step(true); schedule(); }, 1500 / speed);
+}
+
+function step(animate) {
+  if (game.over) return;
+  const w = ++game.wave;
+  const ev = game.events[w] || null;
+  const load = waveLoad(w, game.rng, ev);
+  if (ev) { game.seen.add(ev.type); log(w, 'event', `${ev.icon} ${ev.name}: ${ev.desc}`); }
+  const rm = tickMono(game.mono, load, ev, game.rng, t => log(w, 'mono', t));
+  const rs = tickMicro(game.micro, load, ev, game.rng, t => log(w, 'micro', t));
+
+  const lossMono = rm.failed * 0.6 + hitPower(rs);
+  const lossMicro = rs.failed * 0.6 + hitPower(rm);
+  game.mono.hp -= lossMono;
+  game.micro.hp -= lossMicro;
+  game.last = { load, ev, rm, rs };
+  game.hist.push({
+    w, load,
+    hp: [Math.max(0, game.mono.hp), Math.max(0, game.micro.hp)],
+    served: [rm.served, rs.served], failed: [rm.failed, rs.failed], lat: [rm.lat, rs.lat],
+  });
+
+  if (animate) {
+    spawnVolley(rm, rs);
+    const b = $('banner');
+    if (ev) { b.className = 'banner on'; b.innerHTML = `${ev.icon} <b>${ev.name}</b> · ${ev.desc}`; }
+    else { b.className = 'banner'; b.innerHTML = `<span class="muted">Laine ${w}: ${fmt(load)} päringut ründab mõlemat süsteemi.</span>`; }
+    updateHud();
+    drawChart();
+  }
+
+  if (game.mono.hp <= 0 || game.micro.hp <= 0 || w >= MAX_WAVES) endBattle(animate);
+}
+
+function endBattle(animate) {
+  game.over = true;
+  clearTimeout(game.timer);
+  const hm = game.mono.hp, hs = game.micro.hp;
+  game.winner = Math.abs(hm - hs) < 0.5 ? 'draw' : (hm > hs ? 'mono' : 'micro');
+  const rec = loadRecord();
+  const idx = game.winner === 'draw' ? 2 : (game.winner === playerSide ? 0 : 1);
+  rec[playerSide][idx]++;
+  saveRecord(rec);
+  const name = { mono: '🗼 Monoliit', micro: '🧙 Mikroteenused' };
+  log(game.wave, 'event', game.winner === 'draw' ? '🤝 Viik!' : `🏆 Võitis ${name[game.winner]}!`);
+  updateHud(); drawChart(); updateControls();
+  setTimeout(showSummary, animate ? 1200 : 50);
+}
+
+function log(w, cls, text) {
+  const el = $('log');
+  const d = document.createElement('div');
+  d.className = cls;
+  d.innerHTML = `<span class="w">L${w}</span>${text}`;
+  el.prepend(d);
+  while (el.children.length > 250) el.lastChild.remove();
+}
+
+function updateHud() {
+  for (const k of ['mono', 'micro']) {
+    const s = game[k];
+    const hp = Math.max(0, s.hp);
+    $('hp-' + k).style.width = (hp / START_HP * 100) + '%';
+    $('hp-' + k + '-n').textContent = fmt(hp);
+    const r = game.last?.[k === 'mono' ? 'rm' : 'rs'];
+    $('sub-' + k).textContent = r
+      ? `✔ ${fmt(r.served)} · ✖ ${fmt(r.failed)} · ⏱ ${r.lat ? fmt(r.lat) + ' ms' : '—'}`
+      : describeBuild(k, s.b);
+  }
+  $('wave-n').textContent = game.wave;
+}
+
+function updateControls() {
+  $('pause').textContent = paused ? '▶' : '⏸';
+  document.querySelectorAll('[data-speed]').forEach(b => b.classList.toggle('active', +b.dataset.speed === speed));
+  const dis = !game || game.over;
+  $('pause').disabled = dis; $('finish').disabled = dis;
+}
+
+$('pause').onclick = () => { paused = !paused; updateControls(); schedule(); };
+document.querySelectorAll('[data-speed]').forEach(b => b.onclick = () => {
+  speed = +b.dataset.speed; updateControls(); if (game && !game.over) schedule();
+});
+$('finish').onclick = () => {
+  clearTimeout(game.timer);
+  while (!game.over) step(false);
+};
+document.querySelectorAll('[data-chart]').forEach(b => b.onclick = () => {
+  chartMode = b.dataset.chart;
+  document.querySelectorAll('[data-chart]').forEach(x => x.classList.toggle('active', x === b));
+  drawChart();
+});
+
+// ---------- Kokkuvõte ----------
+function showSummary() {
+  const g = game, M = g.mono.stats, S = g.micro.stats;
+  const you = g.winner === playerSide;
+  $('sum-title').textContent = g.winner === 'draw' ? '🤝 Viik'
+    : `${you ? '🏆 Sa võitsid!' : '💀 Sa kaotasid.'} Võitis ${g.winner === 'mono' ? 'Monoliit' : 'Mikroteenused'}`;
+  $('sum-sub').textContent = `Lahing kestis ${g.wave} lainet · seeme ${g.seed} · arvuti strateegia „${g.aiStrategy}”`;
+
+  const pct = s => s.served + s.failed > 0 ? (s.served / (s.served + s.failed) * 100).toFixed(1) + '%' : '—';
+  const avgLat = s => s.latN ? fmt(s.latSum / s.latN) + ' ms' : '—';
+  const rows = [
+    ['Lõpp-elud', fmt(Math.max(0, g.mono.hp)), fmt(Math.max(0, g.micro.hp))],
+    ['Teenindatud päringuid', fmt(M.served), fmt(S.served)],
+    ['Ebaõnnestunud päringuid', fmt(M.failed), fmt(S.failed)],
+    ['Edukus', pct(M), pct(S)],
+    ['Keskmine latentsus', avgLat(M), avgLat(S)],
+    ['Täieliku seisakuga laineid', M.downWaves, S.downWaves],
+  ];
+  const causes = Object.keys(CAUSE_NAMES).filter(c => M.causes[c] >= 1 || S.causes[c] >= 1);
+  $('sum-table').innerHTML =
+    `<tr><th></th><th class="mono-c">🗼 Monoliit ${playerSide === 'mono' ? '(sina)' : ''}</th><th class="micro-c">🧙 Mikroteenused ${playerSide === 'micro' ? '(sina)' : ''}</th></tr>` +
+    rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('') +
+    (causes.length ? `<tr><th colspan="3" style="text-align:left;padding-top:12px">Ebaõnnestumised põhjuste kaupa</th></tr>` : '') +
+    causes.map(c => `<tr><td>${CAUSE_NAMES[c]}</td><td>${fmt(M.causes[c] || 0)}</td><td>${fmt(S.causes[c] || 0)}</td></tr>`).join('');
+
+  const { mono, micro } = lessons(g);
+  $('les-mono').innerHTML = mono.map(t => `<li>${t}</li>`).join('');
+  $('les-micro').innerHTML = micro.map(t => `<li>${t}</li>`).join('');
+  $('overlay').classList.remove('hidden');
+}
+
+function lessons(g) {
+  const M = g.mono.stats, S = g.micro.stats, bm = g.mono.b, bs = g.micro.b;
+  const mono = [], micro = [];
+  const c = (s, k) => s.causes[k] || 0;
+  const avg = s => s.latN ? s.latSum / s.latN : 0;
+
+  // Monoliit
+  if (c(M, 'krahh') > 0) mono.push([c(M, 'krahh'), `<b>Single point of failure.</b> Kui torn kukkus, seisis kogu Mordor ja ${fmt(c(M, 'krahh'))} päringut läks kaotsi.` +
+    (bm.replica === 0 ? ' Teine koopia koormusjaoturi taga oleks hoidnud osa liiklusest elus.' : '')]);
+  if (c(M, 'deploy') > 0) mono.push([c(M, 'deploy'), `<b>Deploy tähendas seisakut.</b> Iga uus versioon peatas kogu süsteemi (${fmt(c(M, 'deploy'))} päringut). Rolling deploy vajab vähemalt kahte koopiat.`]);
+  if (c(M, 'andmebaasilukk') > 0) mono.push([c(M, 'andmebaasilukk'), `<b>Jagatud andmebaas.</b> Kui Balrog selle lukustas, ootas kogu torn ja ${fmt(c(M, 'andmebaasilukk'))} päringut ebaõnnestus.`]);
+  if (c(M, 'ülekoormus') > 0) mono.push([c(M, 'ülekoormus'), `<b>Vertikaalsel skaleerimisel on lagi.</b> Tippkoormusel (max ${fmt(M.peakLoad)}) ei saanud torni lennult suuremaks ehitada, mistõttu ${fmt(c(M, 'ülekoormus'))} päringut jäi teenindamata.`]);
+  if (c(M, 'latentsus') > 0) mono.push([c(M, 'latentsus'), `<b>Täis koormusel kasvab järjekord.</b> ${fmt(c(M, 'latentsus'))} päringut ületas SLA, sest tornil polnud varu.`]);
+  if (avg(M) && avg(S) && avg(M) < avg(S)) mono.push([-1, `<b>Tugevus: latentsus.</b> Kõik kutsed on protsessisisesed, seega oli monoliit keskmiselt ${fmt(avg(S) - avg(M))} ms kiirem.`]);
+  if (g.seen.has('partition')) mono.push([-2, '<b>Tugevus: võrgu jagunemine</b> monoliiti peaaegu ei puudutanud, sest sisemist võrguliiklust pole.']);
+
+  // Mikroteenused
+  if (c(S, 'latentsus') > 0) micro.push([c(S, 'latentsus'), `<b>Võrguhüpped maksavad.</b> Iga teenusekutse lisab latentsust ja ${fmt(c(S, 'latentsus'))} päringut ületas SLA (300 ms).`]);
+  if (c(S, 'kaskaadtõrge') > 0 || S.cascades > 0) micro.push([c(S, 'kaskaadtõrge') + 1, `<b>Kaskaadtõrge</b> (${S.cascades}×). Teenused ootasid kukkunud naabrit ja kukkusid ise kaasa.` +
+    (bs.breaker ? '' : ' Circuit breaker (Gondori tulukesed) oleks ahela katkestanud.')]);
+  if (c(S, 'võrgu jagunemine') > 0) micro.push([c(S, 'võrgu jagunemine'), `<b>Võrgu jagunemine</b> lõikas teenuse teistest lahti ja ${fmt(c(S, 'võrgu jagunemine'))} päringut ebaõnnestus.` +
+    (bs.mesh ? '' : ' Service mesh oleks liikluse ümber suunanud.')]);
+  if (S.retryLoad > 50) micro.push([S.retryLoad, `<b>Retry-torm.</b> Pimesi kordamine tekitas ${fmt(S.retryLoad)} lisapäringut juba niigi ülekoormatud süsteemile. Exponential backoff aitaks.`]);
+  if (c(S, 'ülekoormus') > 0) micro.push([c(S, 'ülekoormus'), `<b>Pudelikael.</b> Ahel on nii tugev kui selle nõrgim lüli, mistõttu ${fmt(c(S, 'ülekoormus'))} päringut jäi mahu taha.`]);
+  if (c(S, 'krahh') > 0) micro.push([c(S, 'krahh'), `<b>Kriitiline teenus kukkus</b> ja ahel katkes (${fmt(c(S, 'krahh'))} päringut). Iga teenus vajab vähemalt kahte eksemplari.`]);
+  if (S.autoscaled > 0) micro.push([-1, `<b>Tugevus: autoskaleerimine.</b> Kotkad lisasid täpselt pudelikaelale ${S.autoscaled} eksemplari.`]);
+  if (S.retried > 0) micro.push([-2, `<b>Tugevus: tark kordamine</b> päästis ${fmt(S.retried)} päringut.`]);
+  if (S.buffered > 0 && bs.queue) micro.push([-3, `<b>Tugevus: järjekord</b> puhverdas tippudel kokku ${fmt(S.buffered)} päringut ja kaitses teenuseid ülekoormuse eest.`]);
+  if (g.seen.has('balrog') || g.seen.has('leak')) micro.push([-3, '<b>Tugevus: rikke isolatsioon.</b> Andmebaasilukk ja mälulekked tabasid ainult üht teenust, mitte kogu süsteemi.']);
+
+  const top = arr => arr.sort((a, b) => b[0] - a[0]).slice(0, 5).map(x => x[1]);
+  return { mono: top(mono).length ? top(mono) : ['Torn pidas vastu ilma suuremate kaotusteta.'],
+           micro: top(micro).length ? top(micro) : ['Sõpruskond pidas vastu ilma suuremate kaotusteta.'] };
+}
+
+$('again-seed').onclick = () => startBattle(game.seed);
+$('again-build').onclick = () => { $('overlay').classList.add('hidden'); clearTimeout(game.timer); openBuilder(playerSide); };
+$('again-new').onclick = () => { $('seed').value = Math.floor(Math.random() * 1e6); startBattle(+$('seed').value); };
+
+// ---------- Joonistamine ----------
+const field = $('field'), fctx = field.getContext('2d');
+const chart = $('chart'), cctx = chart.getContext('2d');
+let C = {};
+let particles = [];
+
+function readColors() {
+  const cs = getComputedStyle(document.documentElement);
+  ['text', 'muted', 'line', 'mono', 'micro', 'gold', 'bad', 'good', 'field', 'tower', 'eye', 'card']
+    .forEach(k => C[k] = cs.getPropertyValue('--' + k).trim());
+}
+readColors();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { readColors(); drawChart(); });
+
+function fit(cv, ctx) {
+  const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  if (!r.width) return;
+  cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+function resizeCanvases() { fit(field, fctx); fit(chart, cctx); drawChart(); }
+new ResizeObserver(resizeCanvases).observe(document.querySelector('.field-wrap'));
+
+function zones() {
+  const W = field.clientWidth, H = field.clientHeight;
+  return { W, H, monoR: W * 0.36, microL: W * 0.58 };
+}
+
+function spawnVolley(rm, rs) {
+  const { W, H, monoR, microL } = zones();
+  const dur = 1500 / speed;
+  const mk = (n, fromX, toX, color) => {
+    for (let i = 0; i < n; i++) {
+      const y0 = 70 + Math.random() * (H - 140), y1 = 70 + Math.random() * (H - 140);
+      particles.push({ kind: 'arrow', x0: fromX, y0, x1: toX, y1, t: -Math.random() * 0.5, d: dur * (0.6 + Math.random() * 0.3), color });
+    }
+  };
+  mk(Math.min(28, Math.round(rm.served / 12)), monoR, microL, C.mono);
+  mk(Math.min(28, Math.round(rs.served / 12)), microL, monoR, C.micro);
+  const sparks = (n, x0, x1) => {
+    for (let i = 0; i < n; i++) particles.push({ kind: 'spark', x: x0 + Math.random() * (x1 - x0), y: 40 + Math.random() * (H - 80),
+      vx: (Math.random() - 0.5) * 0.08, vy: -0.03 - Math.random() * 0.06, t: -Math.random() * 0.4, d: 900 });
+  };
+  sparks(Math.min(30, Math.round(rm.failed / 8)), 10, monoR);
+  sparks(Math.min(30, Math.round(rs.failed / 8)), microL, W - 10);
+}
+
+let lastT = performance.now();
+function frame(now) {
+  const dt = now - lastT; lastT = now;
+  if (game && !$('screen-battle').classList.contains('hidden')) drawField(now, dt);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+function bar(ctx, x, y, w, h, frac, color) {
+  ctx.fillStyle = C.line; ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = color; ctx.fillRect(x, y, w * clamp(frac, 0, 1), h);
+}
+function healthColor(f) { return f > 0.6 ? C.good : f > 0.3 ? C.gold : C.bad; }
+
+function drawField(now, dt) {
+  const ctx = fctx, { W, H, monoR, microL } = zones();
+  ctx.clearRect(0, 0, W, H);
+
+  // Keskväli
+  ctx.strokeStyle = C.line; ctx.setLineDash([4, 6]);
+  ctx.beginPath(); ctx.moveTo(W * 0.47, 20); ctx.lineTo(W * 0.47, H - 20); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = C.muted; ctx.textAlign = 'center'; ctx.font = '12px system-ui';
+  if (game.last) ctx.fillText(`Laine ${game.wave} · ${fmt(game.last.load)} päringut`, W * 0.47, 14);
+
+  drawMono(ctx, now, monoR, H);
+  drawMicro(ctx, now, microL, W, H);
+
+  // Osakesed
+  particles = particles.filter(p => p.t < 1);
+  for (const p of particles) {
+    if (p.kind === 'arrow') {
+      p.t += dt / p.d;
+      if (p.t < 0) continue;
+      const t = Math.min(1, p.t);
+      const x = p.x0 + (p.x1 - p.x0) * t, y = p.y0 + (p.y1 - p.y0) * t - Math.sin(t * Math.PI) * 40;
+      const dir = Math.sign(p.x1 - p.x0);
+      ctx.strokeStyle = p.color; ctx.globalAlpha = t > 0.9 ? (1 - t) * 10 : 1; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(x - dir * 10, y); ctx.lineTo(x, y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - dir * 4, y - 3); ctx.lineTo(x - dir * 4, y + 3); ctx.fillStyle = p.color; ctx.fill();
+    } else {
+      p.t += dt / p.d;
+      if (p.t < 0) continue;
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      ctx.globalAlpha = 1 - p.t; ctx.fillStyle = C.bad;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.globalAlpha = 1; ctx.lineWidth = 1;
+  }
+
+  if (game.over) {
+    ctx.fillStyle = C.gold; ctx.font = 'bold 22px Georgia'; ctx.textAlign = 'center';
+    ctx.fillText(game.winner === 'draw' ? 'Viik' : `Võitis ${game.winner === 'mono' ? 'Monoliit' : 'Mikroteenused'}`, W * 0.47, H / 2);
+  }
+}
+
+function drawMono(ctx, now, right, H) {
+  const m = game.mono, n = m.replicas.length;
+  const gap = 12, tw = Math.min(70, (right - 20 - gap * (n - 1)) / n);
+  const base = H - 46, top = 40;
+  ctx.textAlign = 'center';
+  m.replicas.forEach((r, i) => {
+    const x0 = 10 + i * (tw + gap);
+    const off = r.down > 0;
+    const hot = !off && m.util > 0.9;
+    ctx.fillStyle = off ? C.line : C.tower;
+    ctx.beginPath();
+    ctx.moveTo(x0, base); ctx.lineTo(x0 + tw, base);
+    ctx.lineTo(x0 + tw * 0.76, top + 46); ctx.lineTo(x0 + tw * 0.92, top + 8);
+    ctx.lineTo(x0 + tw * 0.62, top + 30); ctx.lineTo(x0 + tw * 0.5, top);
+    ctx.lineTo(x0 + tw * 0.38, top + 30); ctx.lineTo(x0 + tw * 0.08, top + 8);
+    ctx.lineTo(x0 + tw * 0.24, top + 46); ctx.closePath(); ctx.fill();
+    if (hot) { ctx.strokeStyle = C.bad; ctx.lineWidth = 2 + Math.sin(now / 120) * 1.5; ctx.stroke(); ctx.lineWidth = 1; }
+    // Silm
+    if (!off) {
+      ctx.save();
+      ctx.shadowColor = C.eye; ctx.shadowBlur = 14 + Math.sin(now / 300) * 6;
+      ctx.fillStyle = C.eye;
+      ctx.beginPath(); ctx.ellipse(x0 + tw / 2, top + 26, tw * 0.15, 6, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+      ctx.fillStyle = '#000';
+      ctx.beginPath(); ctx.ellipse(x0 + tw / 2, top + 26, 1.6, 5, 0, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.font = '18px system-ui';
+    const mid = (top + base) / 2 + 20;
+    if (off) { ctx.fillStyle = C.text; ctx.fillText('💤', x0 + tw / 2, mid); ctx.font = 'bold 13px system-ui'; ctx.fillText(`${r.down}`, x0 + tw / 2, mid + 18); }
+    else if (r.deploying) ctx.fillText('🔧', x0 + tw / 2, mid);
+    if (!off && m.lock > 0) ctx.fillText('⛓️', x0 + tw / 2, mid + 28);
+    bar(ctx, x0, base + 8, tw, 6, r.stab / 100, healthColor(r.stab / 100));
+  });
+  ctx.fillStyle = C.mono; ctx.font = 'bold 13px Georgia';
+  ctx.fillText('Barad-dûr', right / 2, H - 14);
+  // Uuendused
+  ctx.font = '13px system-ui'; ctx.textAlign = 'left';
+  const ex = ['cpu', 'db', 'cache', 'hard', 'monitor'].filter(k => m.b[k]).map(k => ITEMS.mono.find(i => i.id === k).icon + (m.b[k] > 1 ? m.b[k] : '')).join(' ');
+  ctx.fillStyle = C.muted; ctx.fillText(ex, 8, 18);
+}
+
+function drawMicro(ctx, now, left, W, H) {
+  const s = game.micro, b = s.b;
+  const colW = (W - 10 - left) / 4;
+  const maxN = Math.max(...TYPES.map(t => s.inst[t].length));
+  const step = Math.min(44, (H - 120) / maxN);
+  const r = Math.min(16, step * 0.38);
+  const y0 = 56;
+  // Võrgujooned
+  ctx.strokeStyle = C.line; ctx.setLineDash([3, 4]); ctx.lineDashOffset = -now / 40;
+  for (let k = 0; k < 3; k++) {
+    const xa = left + colW * (k + 0.5), xb = left + colW * (k + 1.5);
+    const cut = s.partition && (TYPES[k + 1] === s.partition);
+    ctx.strokeStyle = cut ? C.bad : C.line;
+    ctx.beginPath(); ctx.moveTo(xa + r, y0); ctx.lineTo(xb - r, y0); ctx.stroke();
+  }
+  ctx.setLineDash([]); ctx.lineDashOffset = 0;
+
+  TYPES.forEach((t, k) => {
+    const cx = left + colW * (k + 0.5);
+    ctx.textAlign = 'center'; ctx.fillStyle = C.muted; ctx.font = '11px system-ui';
+    ctx.fillText(TYPE_INFO[t].short, cx, 22);
+    const u = s.util[t] || 0;
+    if (s.partition === t) {
+      ctx.strokeStyle = C.bad; ctx.setLineDash([5, 4]);
+      ctx.strokeRect(cx - colW / 2 + 3, 30, colW - 6, step * s.inst[t].length + 10); ctx.setLineDash([]);
+      ctx.font = '14px system-ui'; ctx.fillText('✂️', cx + colW / 2 - 12, 42);
+    }
+    s.inst[t].forEach((i, j) => {
+      const cy = y0 + j * step;
+      const off = i.down > 0;
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fillStyle = off ? C.line : C.card; ctx.fill();
+      ctx.lineWidth = !off && u > 0.9 ? 2 + Math.sin(now / 120) * 1.2 : 1.2;
+      ctx.strokeStyle = off ? C.muted : (u > 0.9 ? C.bad : C.micro); ctx.stroke(); ctx.lineWidth = 1;
+      ctx.font = `${Math.round(r * 1.15)}px system-ui`; ctx.textBaseline = 'middle';
+      ctx.globalAlpha = off ? 0.35 : 1;
+      ctx.fillText(TYPE_INFO[t].icon, cx, cy + 1);
+      ctx.globalAlpha = 1; ctx.textBaseline = 'alphabetic';
+      if (off) { ctx.font = '11px system-ui'; ctx.fillText('💤', cx + r, cy - r + 4); }
+      if (i.deploying) { ctx.font = '11px system-ui'; ctx.fillText('🔧', cx + r, cy - r + 4); }
+      if (i.auto) { ctx.font = '10px system-ui'; ctx.fillText('🦅', cx - r, cy - r + 4); }
+      bar(ctx, cx - r, cy + r + 2, r * 2, 3, i.h / 100, healthColor(i.h / 100));
+    });
+    if (t === 'db' && s.dbLock > 0) { ctx.font = '14px system-ui'; ctx.fillText('⛓️', cx + colW / 2 - 12, 22); }
+  });
+
+  // Lisad ja kaitsed
+  ctx.textAlign = 'left'; ctx.font = '14px system-ui'; ctx.fillStyle = C.text;
+  let x = left + 4;
+  const yb = H - 14;
+  if (b.cache) { ctx.fillText('🧝' + (b.cache > 1 ? '×' + b.cache : ''), x, yb); x += 36; }
+  if (b.queue) {
+    ctx.fillText('🧺', x, yb); x += 20;
+    const qs = 150 * b.queue;
+    bar(ctx, x, yb - 9, 40, 6, s.backlog / qs, C.gold); x += 48;
+  }
+  ['breaker', 'retry', 'mesh', 'autoscale'].forEach(k => {
+    if (b[k]) { ctx.fillText(ITEMS.micro.find(i => i.id === k).icon, x, yb); x += 22; }
+  });
+  ctx.fillStyle = C.micro; ctx.font = 'bold 13px Georgia'; ctx.textAlign = 'right';
+  ctx.fillText('Sõpruskond', W - 8, yb);
+}
+
+function drawChart() {
+  const ctx = cctx, W = chart.clientWidth, H = chart.clientHeight;
+  if (!W) return;
+  ctx.clearRect(0, 0, W, H);
+  const pad = { l: 44, r: 10, t: 10, b: 20 };
+  const hist = game?.hist || [];
+  const key = chartMode;
+  let maxY = key === 'hp' ? START_HP : 1;
+  hist.forEach(h => { if (key !== 'hp') maxY = Math.max(maxY, h[key][0], h[key][1], key === 'lat' ? SLA * 1.1 : 0); });
+  if (key === 'served') hist.forEach(h => maxY = Math.max(maxY, h.load));
+  maxY *= 1.05;
+  const X = w => pad.l + (W - pad.l - pad.r) * (w / MAX_WAVES);
+  const Y = v => H - pad.b - (H - pad.t - pad.b) * (v / maxY);
+
+  ctx.strokeStyle = C.line; ctx.fillStyle = C.muted; ctx.font = '10px system-ui';
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= 4; i++) {
+    const v = maxY * i / 4, y = Y(v);
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
+    ctx.fillText(fmt(v), pad.l - 4, y + 3);
+  }
+  ctx.textAlign = 'center';
+  for (let w = 0; w <= MAX_WAVES; w += 5) ctx.fillText(w, X(w), H - 5);
+  // Musta reede taust
+  ctx.fillStyle = C.gold; ctx.globalAlpha = 0.12;
+  ctx.fillRect(X(19.5), pad.t, X(21.5) - X(19.5), H - pad.t - pad.b); ctx.globalAlpha = 1;
+
+  if (key === 'lat') {
+    ctx.strokeStyle = C.bad; ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(pad.l, Y(SLA)); ctx.lineTo(W - pad.r, Y(SLA)); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = C.bad; ctx.textAlign = 'left'; ctx.fillText('SLA', pad.l + 4, Y(SLA) - 3);
+  }
+  if (key === 'served' && hist.length) {
+    ctx.strokeStyle = C.muted; ctx.setLineDash([2, 3]); ctx.beginPath();
+    hist.forEach((h, i) => i ? ctx.lineTo(X(h.w), Y(h.load)) : ctx.moveTo(X(h.w), Y(h.load)));
+    ctx.stroke(); ctx.setLineDash([]);
+  }
+  [[0, C.mono], [1, C.micro]].forEach(([idx, color]) => {
+    const pts = key === 'hp' ? [{ w: 0, v: START_HP }] : [];
+    hist.forEach(h => pts.push({ w: h.w, v: h[key][idx] }));
+    if (!pts.length) return;
+    ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.beginPath();
+    pts.forEach((p, i) => i ? ctx.lineTo(X(p.w), Y(p.v)) : ctx.moveTo(X(p.w), Y(p.v)));
+    ctx.stroke(); ctx.lineWidth = 1;
+  });
+  ctx.textAlign = 'right'; ctx.font = '11px system-ui';
+  const legend = [['— Mikroteenused', C.micro], ['— Monoliit', C.mono]];
+  if (key === 'served') legend.push(['┄ koormus', C.muted]);
+  let lx = W - pad.r;
+  legend.forEach(([txt, col]) => { ctx.fillStyle = col; ctx.fillText(txt, lx, pad.t + 10); lx -= ctx.measureText(txt).width + 14; });
+}
+
+renderRecord();
+</script>
+</body>
+</html>
