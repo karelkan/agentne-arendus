@@ -14,7 +14,7 @@ Kaardid on **kontekst AI-agentidele**: lühikesed, faktilised, ilma täitesõnad
 | `docs/c4/L1-kontekst.md` | System Context | `C4Context` | `README.md`, `claude.md`, lisatud/kustutatud/ümbernimetatud `NN-*` kaustad |
 | `docs/c4/L2-konteinerid.md` | Container | `C4Container` | `NN-*/README.md`, lisatud/kustutatud/ümbernimetatud failid `NN-*` kaustades |
 | `docs/c4/L3-NN-nimi.md` (üks iga proovitöö kohta) | Component | `C4Component` | kogu kaust `NN-nimi/` |
-| `docs/c4/L1-kontekst.svg`, `docs/c4/L2-konteinerid.svg` | pildid | – | renderdatud vastava `.md` Mermaid-plokist (vt „Pildid“) |
+| `docs/c4/<kaart>.svg` (iga L1, L2 ja L3 kaardi kohta) | pildid | – | renderdatud vastava `.md` Mermaid-plokist (vt „Pildid“) |
 | `docs/c4/README.md` | indeks | – | loend kaartidest + üks rida iga kohta; uuenda, kui mõni kaart lisandub või kaob |
 
 `NN-nimi` on proovitöö kaust (nt `02-veeleidja`). Proovitöö kaustu **ei muuda** – skill kirjutab ainult kausta `docs/c4/`.
@@ -39,21 +39,23 @@ Iga kaardi esimene rida:
    - L1: `git diff --name-status <commit> HEAD -- README.md claude.md ':(glob)[0-9][0-9]-*/**'` – uuenda, kui muutus `README.md`/`claude.md` või mõni `NN-*` kaust tekkis/kadus.
    - Kaart puudub või tempel puudub/vigane või commit pole kättesaadav (`git cat-file -e <commit>` ebaõnnestub) ⇒ genereeri.
    - Proovitöö kaust on kadunud ⇒ paku selle L3 kaardi kustutamist.
-   - L1/L2 `.md` on ajakohane, aga `.svg` puudub ⇒ ainult renderda pilt (tekst jääb puutumata).
+   - Kaardi `.md` on ajakohane, aga `.svg` puudub ⇒ ainult renderda pilt (tekst jääb puutumata).
 4. **Näita plaani enne kirjutamist:** lühike loend „uuendan: …, jätan vahele: … (muutusteta alates <sha>)“. Kui kõik on ajakohane, ütle seda ja lõpeta.
 5. **Loe ainult vajalikke allikaid** (README-d esmalt, siis `index.html` jm). Suurte failide puhul otsi struktuuri (`<script>`, funktsioonid, klassid, `localStorage`, `fetch`, välised CDN-id), mitte loe kõike.
 6. **Kirjuta kaardid** allpool oleva malli järgi, iga kaart uue templiga.
-6a. **Joonista L1 ja L2 pildid** (vt „Pildid“), kui vastav `.md` sel korral uuenes või `.svg` puudub.
+6a. **Joonista pildid** (vt „Pildid“), kui vastav `.md` sel korral uuenes või `.svg` puudub.
 7. **Valideeri:** iga kaart algab templiga, sisaldab täpselt ühte ` ```mermaid ` plokki, on < 40 rea, ID-d on unikaalsed, igal `Rel`-il on mõlemad otsad defineeritud.
 8. **Raporteeri** ühe-kahe reaga: mis uuenes, mis jäi vahele. Ära commiti, kui kasutaja ei palu.
 
 ## Pildid
 
-Ainult L1 ja L2 saavad pildi; L3 jääb ainult tekstiks.
+Iga kaart (L1, L2, L3) saab pildi. Renderda ainult need kaardid, mis sel korral uuenesid või mille `.svg` puudub, näiteks:
 
 ```
-"$(git rev-parse --show-toplevel)"/.claude/skills/c4-kaardid/render.sh docs/c4/L1-kontekst.md docs/c4/L2-konteinerid.md
+"$(git rev-parse --show-toplevel)"/.claude/skills/c4-kaardid/render.sh docs/c4/L1-kontekst.md docs/c4/L3-02-veeleidja.md
 ```
+
+- Kui L3 kaart kustutatakse (proovitöö kadus), kustuta ka selle `.svg`.
 
 - Skript võtab `.md`-st esimese ` ```mermaid ` ploki ja kirjutab sama nimega `.svg` samasse kausta (`@mermaid-js/mermaid-cli` npx kaudu, versioon skriptis fikseeritud).
 - Kasutab süsteemi Chrome'i (macOS vaikimisi asukoht või `CHROME_PATH`); muidu laadib puppeteer Chromiumi alla.

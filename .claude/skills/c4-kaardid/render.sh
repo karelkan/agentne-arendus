@@ -28,5 +28,8 @@ for md in "$@"; do
     echo "VIGA: $md ei sisalda mermaid-plokki" >&2; exit 1
   fi
   npx -y "$MMDC" -q "${pcfg[@]}" -i "$tmp/$name.mmd" -o "$out" -b white
+  # Kodeering: lisa XML-deklaratsioon ja asenda mitte-ASCII märgid (ä, õ, –, →) numbriliste viidetega,
+  # muidu näitavad mõned vaaturid "MÃ¤ngija".
+  perl -CSD -i -pe 's/([^\x00-\x7F])/sprintf("&#%d;",ord($1))/ge; s/\A/<?xml version="1.0" encoding="UTF-8"?>\n/ if $. == 1' "$out"
   echo "OK: $out"
 done

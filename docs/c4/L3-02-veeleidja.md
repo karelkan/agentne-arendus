@@ -15,7 +15,7 @@ ContainerDb(ls, "localStorage", "veeleidja-map")
 Rel(user, ed, "joonistab")
 Rel(ed, view, "joonistab uuesti")
 Rel(io, ls, "save/restore")
-Rel(view, sim, "samm/esita/lõpuni")
+Rel(view, sim, "simStep")
 ```
 
 - Failivorming: üks kaardirida faili rea kohta, kõrgused 0–99 tühikuga; max 100×100.

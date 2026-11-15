@@ -11,7 +11,7 @@ Container_Boundary(app, "index.html", "HTML/CSS/JS, brauser") {
   Component(ai, "Arvutivastane", "JS", "chooseComputerMove: random/medium/minimax")
 }
 Rel(player, ui, "klõpsab ruutu, valib raskuse")
-Rel(ui, rules, "kontrollib lõppu")
+Rel(ui, rules, "checkEnd")
 Rel(ui, ai, "küsib O käiku")
 Rel(ai, rules, "hindab seise")
 ```
