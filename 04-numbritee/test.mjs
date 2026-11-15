@@ -25,6 +25,50 @@ test('N väljaspool 5–8 annab vea', () => {
   assert.throws(() => Logic.kFor(9), { name: 'RangeError' });
 });
 
+const isAdjacent = (N, a, b) =>
+  Math.abs(Math.floor(a / N) - Math.floor(b / N)) + Math.abs((a % N) - (b % N)) === 1;
+
+test('AC2: 100 mängu iga N kohta – tee läbib kõik ruudud, numbrid kasvavad, vahe ≥ 2, < 1 s', () => {
+  for (const N of [5, 6, 7, 8]) {
+    const M = N * N, K = Logic.kFor(N);
+    const rng = Logic.seededRng(1000 + N);
+    let maxMs = 0;
+    for (let g = 0; g < 100; g++) {
+      const t0 = performance.now();
+      const p = Logic.generatePuzzle(N, rng);
+      maxMs = Math.max(maxMs, performance.now() - t0);
+
+      assert.equal(p.solution.length, M, `N=${N}: tee pikkus`);
+      assert.equal(new Set(p.solution).size, M, `N=${N}: iga ruut täpselt üks kord`);
+      for (let i = 1; i < M; i++) {
+        assert.ok(isAdjacent(N, p.solution[i - 1], p.solution[i]), `N=${N}: sammud ${i - 1}→${i} pole naabrid`);
+      }
+      // [...] kopeerib vm-konteksti massiivi selle konteksti massiiviks (deepEqual võrdleb prototüüpe).
+      const seq = [...p.solution.map((c) => p.numberAt[c]).filter(Boolean)];
+      assert.deepEqual(seq, Array.from({ length: K }, (_, k) => k + 1), `N=${N}: numbrid 1…K järjekorras`);
+      assert.equal(p.numberAt[p.solution[0]], 1, `N=${N}: 1 on tee alguses`);
+      assert.equal(p.numberAt[p.solution[M - 1]], K, `N=${N}: K on tee lõpus`);
+      for (let n = 2; n <= K; n++) {
+        assert.ok(p.numberPos[n] - p.numberPos[n - 1] >= 2, `N=${N}: numbrite ${n - 1} ja ${n} vahe < 2`);
+      }
+    }
+    assert.ok(maxMs < 1000, `N=${N}: aeglaseim mäng ${maxMs.toFixed(1)} ms`);
+  }
+});
+
+test('Generaator annab erinevaid mänge (pole alati maokujuline tee)', () => {
+  const rng = Logic.seededRng(42);
+  const seen = new Set();
+  for (let g = 0; g < 100; g++) seen.add(Logic.generatePuzzle(6, rng).solution.join(','));
+  assert.ok(seen.size >= 95, `100 mängust ainult ${seen.size} erinevat`);
+});
+
+test('Sama seeme → sama mäng', () => {
+  const a = Logic.generatePuzzle(7, Logic.seededRng(7));
+  const b = Logic.generatePuzzle(7, Logic.seededRng(7));
+  assert.deepEqual(a.solution, b.solution);
+});
+
 // --- Käivitaja ---
 
 let failed = 0;
