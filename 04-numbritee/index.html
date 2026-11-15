@@ -4,9 +4,101 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Numbritee</title>
+<style>
+  :root {
+    --bg: #f6f5f1; --fg: #1d1d1f; --muted: #6b6b70;
+    --cell: #ffffff; --line: #d9d7d0; --visited: #dce8fb;
+    --path: #2f6fdf; --num-bg: #1d1d1f; --num-fg: #ffffff; --num-done: #2f6fdf;
+    --hint: #e8a317; --btn: #ffffff; --btn-fg: #1d1d1f; --win: #e3f4e6; --win-fg: #1e5b2b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #151517; --fg: #ececee; --muted: #9a9aa2;
+      --cell: #222226; --line: #36363c; --visited: #1f3256;
+      --path: #6b9bff; --num-bg: #ececee; --num-fg: #151517; --num-done: #6b9bff;
+      --hint: #f2b53a; --btn: #2a2a2f; --btn-fg: #ececee; --win: #1d3a24; --win-fg: #b8e6c1;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main {
+    --size: max(240px, min(calc(100vw - 32px), calc(100dvh - 310px), 520px));
+    max-width: 560px; margin: 0 auto; padding: 16px;
+    display: grid; gap: 12px; justify-items: center;
+  }
+  header { text-align: center; }
+  h1 { margin: 0; font-size: 1.5rem; }
+  .rules { margin: 4px 0 0; color: var(--muted); font-size: .95rem; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; }
+  .stats { font-variant-numeric: tabular-nums; color: var(--muted); gap: 4px 16px; }
+  .stats b { color: var(--fg); font-weight: 600; }
+  button, select {
+    font: inherit; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--btn); color: var(--btn-fg); cursor: pointer;
+  }
+  button:disabled { opacity: .45; cursor: default; }
+
+  .board-wrap { position: relative; isolation: isolate; width: var(--size); height: var(--size); touch-action: none; user-select: none; -webkit-user-select: none; }
+  .grid { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); grid-template-rows: repeat(var(--n), minmax(0, 1fr)); width: 100%; height: 100%; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .cell { display: flex; align-items: center; justify-content: center; background: var(--cell); border: 1px solid var(--line); margin: -0.5px; transition: background .12s; }
+  .cell.visited { background: var(--visited); }
+  .cell.hint { animation: blink .5s ease-in-out 3; }
+  @keyframes blink { 50% { background: var(--hint); } }
+  .board-wrap svg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+  .num {
+    position: relative; z-index: 2; width: 62%; aspect-ratio: 1; border-radius: 50%;
+    display: grid; place-items: center; background: var(--num-bg); color: var(--num-fg);
+    font-weight: 700; font-size: calc(var(--size) / var(--n) * .34); pointer-events: none;
+  }
+  .num.done { background: var(--num-done); color: #fff; }
+
+  .win { background: var(--win); color: var(--win-fg); padding: 10px 16px; border-radius: 8px; text-align: center; }
+  .win[hidden] { display: none; }
+
+  /* Telefon rõhtpaigutuses: ruudustik vasakul, juhtnupud paremal (M5). */
+  @media (orientation: landscape) and (max-height: 560px) {
+    main {
+      --size: min(calc(100dvh - 32px), 55vw);
+      max-width: none; grid-template-columns: auto minmax(0, 320px); justify-content: center; align-items: center;
+    }
+    .board-wrap { grid-row: 1 / span 5; grid-column: 1; }
+  }
+</style>
 </head>
 <body>
-<h1>Numbritee</h1>
+<main>
+  <header>
+    <h1>Numbritee</h1>
+    <p class="rules">Lohista ruudust 1: ühenda numbrid järjekorras ja läbi iga ruut täpselt üks kord.</p>
+  </header>
+  <div class="row">
+    <label>Suurus
+      <select id="size">
+        <option value="5">5 × 5</option>
+        <option value="6" selected>6 × 6</option>
+        <option value="7">7 × 7</option>
+        <option value="8">8 × 8</option>
+      </select>
+    </label>
+    <button id="new">Uus mäng</button>
+  </div>
+  <div class="row stats" aria-live="polite">
+    <span>Aeg: <b id="time">0:00</b></span>
+    <span>Tagasivõtted: <b id="undos">0</b></span>
+    <span>Vihjed: <b id="hints">0</b></span>
+    <span>Parim: <b id="best">–</b></span>
+  </div>
+  <div class="board-wrap" id="board">
+    <div class="grid" id="grid"></div>
+    <svg id="line" aria-hidden="true"></svg>
+  </div>
+  <div class="row">
+    <button id="undo">Tagasi</button>
+    <button id="hint">Vihje</button>
+    <button id="restart">Alusta uuesti</button>
+  </div>
+  <div class="win" id="win" role="status" hidden></div>
+</main>
 
 <!-- Puhas mänguloogika: ilma DOM-ita, testitav käsuga `node test.mjs`. -->
 <script id="logic">
@@ -188,6 +280,163 @@ Logic;
 
 <!-- Kasutajaliides. -->
 <script id="ui">
+const $ = (id) => document.getElementById(id);
+const el = {
+  size: $('size'), board: $('board'), grid: $('grid'), line: $('line'), win: $('win'),
+  time: $('time'), undos: $('undos'), hints: $('hints'), best: $('best'),
+  undo: $('undo'), hint: $('hint'), restart: $('restart'), newGame: $('new'),
+};
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+let state;          // mängu olek (Logic)
+let cells = [];     // ruutude DOM-elemendid indeksi järgi
+let startTime = null, endTime = null, timerId = null, hintTimer = null, dragging = false;
+
+const fmt = (ms) => { const s = Math.floor(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+const elapsed = () => (startTime === null ? 0 : (endTime ?? performance.now()) - startTime);
+
+// --- Parim aeg (F11): localStorage võib puududa või visata vea, siis töötab mäng ilma selleta ---
+const bestKey = (N) => `numbritee.best.${N}`;
+function loadBest(N) {
+  try { const v = localStorage.getItem(bestKey(N)); return v ? Number(v) : null; } catch { return null; }
+}
+function saveBest(N, ms) {
+  try { localStorage.setItem(bestKey(N), String(Math.round(ms))); } catch { /* ignoreeri */ }
+}
+
+// --- Mängu alustamine ---
+function newGame() {
+  setup(Logic.newState(Logic.generatePuzzle(Number(el.size.value))));
+}
+
+function setup(s) {
+  state = s;
+  clearInterval(timerId);
+  startTime = endTime = timerId = null;
+  el.win.hidden = true;
+  buildBoard();
+  render();
+}
+
+function buildBoard() {
+  const { N, numberAt } = state.puzzle;
+  el.board.style.setProperty('--n', N);
+  el.grid.replaceChildren();
+  cells = [];
+  for (let i = 0; i < N * N; i++) {
+    const c = document.createElement('div');
+    c.className = 'cell';
+    c.dataset.i = i;
+    if (numberAt[i]) {
+      const n = document.createElement('span');
+      n.className = 'num';
+      n.textContent = numberAt[i];
+      c.append(n);
+    }
+    el.grid.append(c);
+    cells.push(c);
+  }
+  el.line.setAttribute('viewBox', `0 0 ${N} ${N}`);
+}
+
+// --- Oleku muutmine ja joonistamine ---
+function setState(next) {
+  if (next === state) return;
+  const prev = state;
+  state = next;
+  if (!prev.started && next.started) startTimer();
+  if (!prev.won && next.won) onWin();
+  render();
+}
+
+function render() {
+  const { N, numberAt } = state.puzzle;
+  const onPath = new Set(state.path);
+  cells.forEach((c, i) => {
+    c.classList.toggle('visited', onPath.has(i));
+    const num = c.firstElementChild;
+    if (num) num.classList.toggle('done', onPath.has(i) && numberAt[i] <= state.reached);
+  });
+
+  // Tee joon ja teeotsa täpp (SVG, koordinaadid ruutudes)
+  const pt = (i) => [(i % N) + 0.5, Math.floor(i / N) + 0.5];
+  const points = state.path.map((i) => pt(i).join(',')).join(' ');
+  const [tx, ty] = pt(Logic.tail(state));
+  el.line.innerHTML =
+    `<polyline points="${points}" fill="none" stroke="var(--path)" stroke-width="0.28" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>` +
+    `<circle cx="${tx}" cy="${ty}" r="0.22" fill="var(--path)"/>`;
+
+  el.undos.textContent = state.undos;
+  el.hints.textContent = state.hints;
+  el.time.textContent = fmt(elapsed());
+  const best = loadBest(N);
+  el.best.textContent = best === null ? '–' : fmt(best);
+  el.undo.disabled = state.won || state.path.length <= 1;
+  el.hint.disabled = state.won;
+}
+
+// --- Taimer (F7) ja võit (F8) ---
+function startTimer() {
+  startTime = performance.now();
+  timerId = setInterval(() => { el.time.textContent = fmt(elapsed()); }, 250);
+}
+
+function onWin() {
+  endTime = performance.now();
+  clearInterval(timerId);
+  const ms = elapsed();
+  const { N } = state.puzzle;
+  let record = '';
+  if (state.hints === 0) {
+    const best = loadBest(N);
+    if (best === null || ms < best) { saveBest(N, ms); record = ' Uus rekord!'; }
+  }
+  el.win.textContent =
+    `Võit! Aeg ${fmt(ms)} · tagasivõtted ${state.undos} · vihjed ${state.hints}.${record}`;
+  el.win.hidden = false;
+}
+
+// --- Lohistamine (F5): algab ainult tee otsast, ruut leitakse sõrme/hiire asukohast ---
+function cellAt(e) {
+  const hit = document.elementFromPoint(e.clientX, e.clientY);
+  const c = hit && hit.closest('.cell');
+  return c && el.grid.contains(c) ? Number(c.dataset.i) : null;
+}
+
+el.board.addEventListener('pointerdown', (e) => {
+  if (state.won || cellAt(e) !== Logic.tail(state)) return;
+  dragging = true;
+  try { el.board.setPointerCapture(e.pointerId); } catch { /* sünteetiline sündmus testis */ }
+  e.preventDefault();
+});
+el.board.addEventListener('pointermove', (e) => {
+  if (!dragging) return;
+  const i = cellAt(e);
+  if (i !== null) setState(Logic.dragTo(state, i));
+});
+const stopDrag = () => { dragging = false; };
+el.board.addEventListener('pointerup', stopDrag);
+el.board.addEventListener('pointercancel', stopDrag);
+
+// --- Nupud ---
+el.newGame.addEventListener('click', newGame);
+el.size.addEventListener('change', newGame);
+el.restart.addEventListener('click', () => setup(Logic.restart(state)));
+el.undo.addEventListener('click', () => setState(Logic.undo(state)));
+el.hint.addEventListener('click', () => {
+  const { state: next, target } = Logic.hint(state);
+  setState(next);
+  if (target === null) return;
+  // Vihje vilgub ~1,5 s (3 × 0,5 s animatsioon), siis kaob (F9)
+  clearTimeout(hintTimer);
+  cells.forEach((c) => c.classList.remove('hint'));
+  const c = cells[target];
+  void c.offsetWidth; // taaskäivita animatsioon
+  c.classList.add('hint');
+  hintTimer = setTimeout(() => c.classList.remove('hint'), 1500);
+});
+
+newGame(); // lehe avamisel kohe mäng N=6 (F1)
 </script>
 </body>
 </html>
