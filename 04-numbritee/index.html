@@ -159,13 +159,29 @@ function dragTo(state, cell) {
   return s;
 }
 
+// Vihje (F9). Viimane õige ruut = mängija tee ja lahendustee pikima ühise alguse viimane ruut.
+// Pikem tee lõigatakse sinna ilma tagasivõtete trahvita. target = järgmine ruut, mida UI vilgutab.
+// Vihje käivitab taimeri (started). Võidu järel ei tee midagi (target = null).
+function hint(state) {
+  if (state.won) return { state, target: null };
+  const { solution, numberAt } = state.puzzle;
+  let L = 1;
+  while (L < state.path.length && state.path[L] === solution[L]) L++;
+  const path = state.path.slice(0, L);
+  const reached = Math.max(...path.map((c) => numberAt[c]));
+  return {
+    state: { ...state, path, reached, hints: state.hints + 1, started: true },
+    target: solution[L],
+  };
+}
+
 // „Alusta uuesti“ (F10): sama mäng, tühi tee ja nullis loendurid.
 const restart = (state) => newState(state.puzzle);
 
 // Viimane avaldis = loogika avalik liides (test.mjs loeb selle vm-i tulemusena).
 const Logic = {
   K_BY_N, kFor, seededRng, neighbors, generatePuzzle,
-  newState, tail, canExtend, extend, undo, isWon, restart, dragTo,
+  newState, tail, canExtend, extend, undo, isWon, restart, dragTo, hint,
 };
 Logic;
 </script>

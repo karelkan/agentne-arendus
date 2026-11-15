@@ -200,6 +200,45 @@ test('Diagonaalne hüpe ja sama ruut ei muuda olekut; võidu järel lohistamine 
   assert.equal(Logic.dragTo(won, 23), won);
 });
 
+test('AC9 (loogika): õigel teel vihje ei lõika, näitab järgmist lahenduse ruutu, hints +1', () => {
+  const s = walk(Logic.newState(snakePuzzle()), [1, 2]);
+  const { state, target } = Logic.hint(s);
+  assert.deepEqual([...state.path], [0, 1, 2]);
+  assert.equal(target, 3);
+  assert.equal(state.hints, 1);
+});
+
+test('AC10: kõrvale läinud tee lõigatakse viimase õige ruuduni, tagasivõtted ei muutu', () => {
+  // Lahendus läheb 1 → 2, mängija läheb 1 → 6 → 11.
+  const s = walk(Logic.newState(snakePuzzle()), [1, 6, 11]);
+  assert.deepEqual([...s.path], [0, 1, 6, 11]);
+  const { state, target } = Logic.hint(s);
+  assert.deepEqual([...state.path], [0, 1]);
+  assert.equal(target, 2);
+  assert.equal(state.undos, 0);
+  assert.equal(state.reached, 1);
+});
+
+test('Vihje lõikab ka numbri tagasi (reached arvutatakse uuesti)', () => {
+  const p = snakePuzzle();
+  // Lahendus: 0 1 2 3 4 9 …; mängija: 0 1 2 3 8 9 (9 = number 3), kõrvalekalle ruudust 8.
+  const s = walk(Logic.newState(p), [1, 2, 3, 8, 9]);
+  assert.equal(s.reached, 3);
+  const { state, target } = Logic.hint(s);
+  assert.deepEqual([...state.path], [0, 1, 2, 3]);
+  assert.equal(state.reached, 2);
+  assert.equal(target, 4);
+});
+
+test('Vihje käivitab taimeri; võidu järel vihje ei tee midagi', () => {
+  assert.equal(Logic.hint(Logic.newState(snakePuzzle())).state.started, true);
+  const p = snakePuzzle();
+  const won = walk(Logic.newState(p), p.solution.slice(1));
+  const r = Logic.hint(won);
+  assert.equal(r.state, won);
+  assert.equal(r.target, null);
+});
+
 // --- Käivitaja ---
 
 let failed = 0;
