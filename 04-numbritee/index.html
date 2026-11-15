@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="et">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Numbritee</title>
+</head>
+<body>
+<h1>Numbritee</h1>
+
+<!-- Puhas mänguloogika: ilma DOM-ita, testitav käsuga `node test.mjs`. -->
+<script id="logic">
+// Numbrite arv K ruudustiku suuruse N järgi (spec F2).
+const K_BY_N = { 5: 6, 6: 9, 7: 12, 8: 15 };
+
+function kFor(N) {
+  const K = K_BY_N[N];
+  if (K === undefined) throw new RangeError(`N peab olema 5–8, sain ${N}`);
+  return K;
+}
+
+// Viimane avaldis = loogika avalik liides (test.mjs loeb selle vm-i tulemusena).
+const Logic = { K_BY_N, kFor };
+Logic;
+</script>
+
+<!-- Kasutajaliides. -->
+<script id="ui">
+</script>
+</body>
+</html>
