@@ -46,12 +46,20 @@ Iga samm lõpeb sellega, et `node test.mjs` läheb läbi. Pärast iga sammu tule
 
 ## AC kontrolli tabel
 
-Täida sammu 11 ajal.
+Täidetud 2026-11-15. „Suitsutest“ = headless Chrome, sünteetilised Pointer Events (`elementFromPoint` + `dragTo`), mitte päris puude.
 
-| AC | Kuidas kontrollitakse | Tulemus |
+| AC | Kuidas kontrolliti | Tulemus |
 |---|---|---|
-| AC1, AC5, AC7, AC9, AC11, AC12, AC14, AC15 | käsitsi Chrome'is (+ DevToolsi mobiiliemulatsioon) | |
-| AC2, AC3, AC4, AC6, AC8, AC10, AC13 | `node test.mjs` | |
+| AC2, AC3, AC4, AC6, AC8, AC10, AC13 | `node test.mjs` (23 testi) | ✅ |
+| AC1 | suitsutest: suuruse vahetus → N=8, 64 ruutu, 15 numbrit | ✅ |
+| AC7 | ekraanipilt: 0:00 laadimisel; suitsutest: taimer käivitub esimesest käigust, võit peatab | ✅ |
+| AC8 (UI) | suitsutest: võidupaneel aja, tagasivõtete ja vihjetega | ✅ |
+| AC9 | suitsutest: 1 ruut vilgub, vihjete loendur 1 | ✅ |
+| AC11 | suitsutest: „Alusta uuesti“ pärast võitu → sama mäng, uus võit | ✅ |
+| AC12 | suitsutest: vihjega võit ei salvesta, vihjeta võit salvestab localStorage'isse | ✅ osaliselt. Lehe uuesti laadimist pole proovitud. |
+| AC14 | ekraanipilt: kohe 6×6 mäng ja reeglitekst | ✅ |
+| AC5 | ekraanipilt 375 px: mahub, ei keri horisontaalselt; suitsutest: lohistamine pikendab teed | ⏳ päris puudega (DevToolsi emulatsioon) kontrollimata |
+| AC15 | ekraanipilt 667×375: rõhtpaigutus mahub | ⏳ seisu säilimist pööramisel kontrollimata |
 
 ## Riskid
 
