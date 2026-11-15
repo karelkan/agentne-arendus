@@ -92,8 +92,58 @@ function generatePuzzle(N, rng = Math.random) {
   return { N, K, solution, numberAt, numberPos };
 }
 
+// --- Mängu olek ja reeglid (F3, F4, F6, F8, F10) ---
+// Olek on muutumatu: iga funktsioon tagastab uue objekti või sama objekti, kui midagi ei muutunud.
+// path[0] on alati ruut „1“. Tee pikkus (sammud) = path.length − 1.
+// reached = suurim number, mis teel on. started = kas esimene käik on tehtud (taimer, F7).
+
+function newState(puzzle) {
+  return { puzzle, path: [puzzle.solution[0]], reached: 1, undos: 0, hints: 0, won: false, started: false };
+}
+
+const tail = (state) => state.path[state.path.length - 1];
+const isAdjacent = (N, a, b) =>
+  Math.abs(Math.floor(a / N) - Math.floor(b / N)) + Math.abs((a % N) - (b % N)) === 1;
+
+function canExtend(state, cell) {
+  const { N, K, numberAt } = state.puzzle;
+  if (state.won) return false;
+  if (numberAt[tail(state)] === K) return false; // ruudust K ei saa edasi (F4)
+  if (!isAdjacent(N, tail(state), cell)) return false; // ainult naaberruut, mitte diagonaal (F3)
+  if (state.path.includes(cell)) return false; // iga ruut üks kord (F3)
+  const n = numberAt[cell];
+  return n === 0 || n === state.reached + 1; // number ainult järjekorras (F4)
+}
+
+function isWon(state) {
+  const { N, K, numberAt } = state.puzzle;
+  return state.path.length === N * N && numberAt[tail(state)] === K;
+}
+
+function extend(state, cell) {
+  if (!canExtend(state, cell)) return state;
+  const n = state.puzzle.numberAt[cell];
+  const next = { ...state, path: [...state.path, cell], reached: n || state.reached, started: true };
+  next.won = isWon(next);
+  return next;
+}
+
+// Viimase sammu eemaldamine (F6). Tühjal teel või pärast võitu ei tee midagi.
+function undo(state) {
+  if (state.won || state.path.length <= 1) return state;
+  const removed = tail(state);
+  const n = state.puzzle.numberAt[removed];
+  return { ...state, path: state.path.slice(0, -1), reached: n ? n - 1 : state.reached, undos: state.undos + 1 };
+}
+
+// „Alusta uuesti“ (F10): sama mäng, tühi tee ja nullis loendurid.
+const restart = (state) => newState(state.puzzle);
+
 // Viimane avaldis = loogika avalik liides (test.mjs loeb selle vm-i tulemusena).
-const Logic = { K_BY_N, kFor, seededRng, neighbors, generatePuzzle };
+const Logic = {
+  K_BY_N, kFor, seededRng, neighbors, generatePuzzle,
+  newState, tail, canExtend, extend, undo, isWon, restart,
+};
 Logic;
 </script>
 
