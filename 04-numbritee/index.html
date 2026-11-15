@@ -136,13 +136,36 @@ function undo(state) {
   return { ...state, path: state.path.slice(0, -1), reached: n ? n - 1 : state.reached, undos: state.undos + 1 };
 }
 
+// Lohistamine ruudule (F5): liigub tee otsast sihtruudu poole samm-sammult, kui siht on samas reas või veerus.
+// Iga samm: eelviimane teeruut → tagasivõtt (loeb tagasivõtteks), muidu → pikendamine.
+// Esimene keelatud samm peatab liikumise. Diagonaalne või muu hüpe → olek ei muutu.
+function dragTo(state, cell) {
+  if (state.won) return state;
+  const { N } = state.puzzle;
+  const t = tail(state);
+  const dr = Math.floor(cell / N) - Math.floor(t / N);
+  const dc = (cell % N) - (t % N);
+  if ((dr !== 0 && dc !== 0) || (dr === 0 && dc === 0)) return state;
+  const step = dr !== 0 ? Math.sign(dr) * N : Math.sign(dc);
+  const count = Math.abs(dr + dc);
+  let s = state;
+  for (let k = 0; k < count; k++) {
+    const c = tail(s) + step;
+    const penult = s.path.length >= 2 ? s.path[s.path.length - 2] : -1;
+    const next = c === penult ? undo(s) : extend(s, c);
+    if (next === s) break;
+    s = next;
+  }
+  return s;
+}
+
 // „Alusta uuesti“ (F10): sama mäng, tühi tee ja nullis loendurid.
 const restart = (state) => newState(state.puzzle);
 
 // Viimane avaldis = loogika avalik liides (test.mjs loeb selle vm-i tulemusena).
 const Logic = {
   K_BY_N, kFor, seededRng, neighbors, generatePuzzle,
-  newState, tail, canExtend, extend, undo, isWon, restart,
+  newState, tail, canExtend, extend, undo, isWon, restart, dragTo,
 };
 Logic;
 </script>

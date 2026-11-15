@@ -162,6 +162,44 @@ test('Esimene käik märgib mängu alustatuks (F7); restart tühjendab (F10)', (
   assert.equal(r.puzzle, s.puzzle, 'numbrid jäävad samaks');
 });
 
+test('AC13: lohistamine eelviimasele ruudule lühendab teed 1 võrra ja loeb tagasivõtteks', () => {
+  const s = Logic.dragTo(walk(Logic.newState(snakePuzzle()), [1, 2, 3]), 2);
+  assert.deepEqual([...s.path], [0, 1, 2]);
+  assert.equal(s.undos, 1);
+});
+
+test('Lohistamine kaks ruutu tagasi = kaks tagasivõttu', () => {
+  const s = Logic.dragTo(walk(Logic.newState(snakePuzzle()), [1, 2, 3]), 1);
+  assert.deepEqual([...s.path], [0, 1]);
+  assert.equal(s.undos, 2);
+});
+
+test('Vahele jäänud ruudud samas reas või veerus lisatakse järjest (F5)', () => {
+  const s = Logic.dragTo(Logic.newState(snakePuzzle()), 3);
+  assert.deepEqual([...s.path], [0, 1, 2, 3]);
+  assert.equal(s.reached, 2);
+  const down = Logic.dragTo(walk(Logic.newState(snakePuzzle()), [1]), 21);
+  assert.deepEqual([...down.path], [0, 1, 6, 11, 16, 21]);
+});
+
+test('Lohistamine peatub esimese keelatud sammu ees', () => {
+  // tee 0→1→2 (number 2), alla veerus: 7 on number 4 → keelatud kohe
+  const s = walk(Logic.newState(snakePuzzle()), [1, 2]);
+  assert.equal(Logic.dragTo(s, 17), s);
+  // tee 0→1, paremale ruuduni 4: 2 (number 2), 3, 4 lubatud
+  assert.deepEqual([...Logic.dragTo(walk(Logic.newState(snakePuzzle()), [1]), 4).path], [0, 1, 2, 3, 4]);
+});
+
+test('Diagonaalne hüpe ja sama ruut ei muuda olekut; võidu järel lohistamine ei tööta', () => {
+  const s = walk(Logic.newState(snakePuzzle()), [1]);
+  assert.equal(Logic.dragTo(s, 7), s, 'diagonaal');
+  assert.equal(Logic.dragTo(s, 13), s, 'muu hüpe');
+  assert.equal(Logic.dragTo(s, 1), s, 'sama ruut');
+  const p = snakePuzzle();
+  const won = walk(Logic.newState(p), p.solution.slice(1));
+  assert.equal(Logic.dragTo(won, 23), won);
+});
+
 // --- Käivitaja ---
 
 let failed = 0;
