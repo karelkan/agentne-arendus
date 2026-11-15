@@ -56,10 +56,10 @@ Täidetud 2026-11-15. „Suitsutest“ = headless Chrome, sünteetilised Pointer
 | AC8 (UI) | suitsutest: võidupaneel aja, tagasivõtete ja vihjetega | ✅ |
 | AC9 | suitsutest: 1 ruut vilgub, vihjete loendur 1 | ✅ |
 | AC11 | suitsutest: „Alusta uuesti“ pärast võitu → sama mäng, uus võit | ✅ |
-| AC12 | suitsutest: vihjega võit ei salvesta, vihjeta võit salvestab localStorage'isse | ✅ osaliselt. Lehe uuesti laadimist pole proovitud. |
+| AC12 | suitsutest: vihjega võit ei salvesta, vihjeta võit salvestab localStorage'isse; käsitsi: parim aeg jääb alles pärast lehe uuesti laadimist (2026-11-16) | ✅ |
 | AC14 | ekraanipilt: kohe 6×6 mäng ja reeglitekst | ✅ |
-| AC5 | ekraanipilt 375 px: mahub, ei keri horisontaalselt; suitsutest: lohistamine pikendab teed | ⏳ päris puudega (DevToolsi emulatsioon) kontrollimata |
-| AC15 | ekraanipilt 667×375: rõhtpaigutus mahub | ⏳ seisu säilimist pööramisel kontrollimata |
+| AC5 | ekraanipilt 375 px: mahub, ei keri horisontaalselt; suitsutest: lohistamine pikendab teed | ⏳ päris puudega kontrollimata. Kontrollitakse pärast GitHubi avaldamist päris telefonis. |
+| AC15 | ekraanipilt 667×375: rõhtpaigutus mahub | ⏳ seisu säilimist pööramisel kontrollimata. Kontrollitakse pärast GitHubi avaldamist päris telefonis. |
 
 ## Riskid
 
