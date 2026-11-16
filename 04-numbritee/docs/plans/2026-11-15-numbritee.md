@@ -68,9 +68,9 @@ Projekt teadlikult **ei** tee järgmist:
 - **AC15 → M5:** Kui tee on pooleli ja pööran ekraani (DevToolsis portree ↔ rõhtpaigutus), siis tee, taimer ja loendurid jäävad samaks ning ruudustik mahub ekraanile ilma kerimiseta.
 
 ## Valmis-definitsioon
-- [ ] Kõik vastuvõtukriteeriumid on käsitsi või testiga kontrollitud (AC5 võib kontrollida DevToolsi mobiiliemulatsiooniga)
-- [ ] Generaatori ja käigureeglite loogikal on automaattestid, mis lähevad läbi
-- [ ] Kood ja dokumendid on commititud
+- [x] Kõik vastuvõtukriteeriumid on käsitsi või testiga kontrollitud (AC5 võib kontrollida DevToolsi mobiiliemulatsiooniga)
+- [x] Generaatori ja käigureeglite loogikal on automaattestid, mis lähevad läbi
+- [x] Kood ja dokumendid on commititud
 
 ## Avatud küsimused ja riskid
 - **Mitu lahendust:** vihje võib lõigata mängija õige, aga generaatori teest erineva tee. See piirang on teadlikult aktsepteeritud (vt Non-goals).

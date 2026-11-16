@@ -58,8 +58,8 @@ Täidetud 2026-11-15. „Suitsutest“ = headless Chrome, sünteetilised Pointer
 | AC11 | suitsutest: „Alusta uuesti“ pärast võitu → sama mäng, uus võit | ✅ |
 | AC12 | suitsutest: vihjega võit ei salvesta, vihjeta võit salvestab localStorage'isse; käsitsi: parim aeg jääb alles pärast lehe uuesti laadimist (2026-11-16) | ✅ |
 | AC14 | ekraanipilt: kohe 6×6 mäng ja reeglitekst | ✅ |
-| AC5 | ekraanipilt 375 px: mahub, ei keri horisontaalselt; suitsutest: lohistamine pikendab teed | ⏳ päris puudega kontrollimata. Kontrollitakse pärast GitHubi avaldamist päris telefonis. |
-| AC15 | ekraanipilt 667×375: rõhtpaigutus mahub | ⏳ seisu säilimist pööramisel kontrollimata. Kontrollitakse pärast GitHubi avaldamist päris telefonis. |
+| AC5 | ekraanipilt 375 px: mahub, ei keri horisontaalselt; suitsutest: lohistamine pikendab teed | ✅ kontrollitud päris telefonis (GitHub Pages, 2026-11-16): lohistamine pikendab teed, leht ei keri. |
+| AC15 | ekraanipilt 667×375: rõhtpaigutus mahub | ✅ aktsepteeritud päris telefonis (GitHub Pages, 2026-11-16): vaade ei pöördu rõhtpaigutusse, kasutaja hinnangul sobib. |
 
 ## Riskid
 
